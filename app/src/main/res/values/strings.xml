@@ -1,0 +1,83 @@
+<resources>
+    <string name="app_name">Online Radio</string>
+    <string name="buffering">Buffering</string>
+    <string name="pause">Pause</string>
+    <string name="play">Play</string>
+    <string name="PlayList">PlayList</string>
+    <string name="copied">Copied to clipboard</string>
+    <string name="stations">Radio Stations</string>
+
+    <string name="comedy_radio">http://ic2.101.ru:8000/v11_1</string>
+    <string name="record">http://air.radiorecord.ru:8101/rr_128</string>
+    <string name="record_vip">http://air.radiorecord.ru:8102/vip_128</string>
+    <string name="record_rock">http://air.radiorecord.ru:8102/rock_128</string>
+    <string name="record_deep">http://air.radiorecord.ru:8102/deep_128</string>
+    <string name="record_ps">http://air.radiorecord.ru:8102/ps_128</string>
+    <string name="kiss_ua">http://online-kissfm.tavrmedia.ua/KissFM</string>
+    <string name="kiss_deep">http://online-kissfm.tavrmedia.ua/KissFM_Deep</string>
+    <string name="kiss_digital">http://online-kissfm.tavrmedia.ua/KissFM_Digital</string>
+    <string name="hit_ua">http://online-hitfm.tavrmedia.ua/HitFM</string>
+    <string name="radio_rocks">http://online-radioroks.tavrmedia.ua:80/RadioROKS</string>
+    <string name="auto_radio">http://cast.radiogroup.com.ua:8000/avtoradio</string>
+    <string name="fm181_hip_hop">http://listen.181fm.com/181-beat_128k.mp3</string>
+    <string name="fm181_oldSchool">http://listen.181fm.com/181-oldschool_128k.mp3</string>
+    <string name="fm181_hardrock">http://listen.181fm.com/181-hardrock_128k.mp3</string>
+    <string name="fm181_rock">http://listen.181fm.com/181-rock_128k.mp3</string>
+
+    <string name="comedy_radio_name">Comedy Radio</string>
+    <string name="record_name">Record</string>
+    <string name="record_vip_name">Record VIP</string>
+    <string name="record_rock_name">Record Rock</string>
+    <string name="record_deep_name">Record Deep</string>
+    <string name="record_ps_name">Record Pirate Station</string>
+    <string name="kiss_ua_name">Kiss Fm</string>
+    <string name="kiss_deep_name">Kiss Fm Deep</string>
+    <string name="kiss_digital_name">Kiss Fm Digital</string>
+    <string name="hit_ua_name">Hit Fm</string>
+    <string name="radio_rocks_name">Rocks</string>
+    <string name="auto_radio_name">Auto Radio</string>
+    <string name="fm181_hip_hop_name">181 Fm Hip-Hop</string>
+    <string name="fm181_oldSchool_name">181 Fm OldSchool</string>
+    <string name="fm181_hardrock_name">181 Fm Hard Rock</string>
+    <string name="fm181_rock_name">181 Fm Rock</string>
+
+
+    <string-array name="stations_url">
+        <item>@string/comedy_radio</item>
+        <item>@string/record</item>
+        <item>@string/record_vip</item>
+        <item>@string/record_rock</item>
+        <item>@string/record_deep</item>
+        <item>@string/record_ps</item>
+        <item>@string/kiss_ua</item>
+        <item>@string/kiss_deep</item>
+        <item>@string/kiss_digital</item>
+        <item>@string/hit_ua</item>
+        <item>@string/radio_rocks</item>
+        <item>@string/auto_radio</item>
+        <item>@string/fm181_hardrock</item>
+        <item>@string/fm181_rock</item>
+        <item>@string/fm181_hip_hop</item>
+        <item>@string/fm181_oldSchool</item>
+    </string-array>
+
+    <string-array name="stations_name">
+        <item>@string/comedy_radio_name</item>
+        <item>@string/record_name</item>
+        <item>@string/record_vip_name</item>
+        <item>@string/record_rock_name</item>
+        <item>@string/record_deep_name</item>
+        <item>@string/record_ps_name</item>
+        <item>@string/kiss_ua_name</item>
+        <item>@string/kiss_deep_name</item>
+        <item>@string/kiss_digital_name</item>
+        <item>@string/hit_ua_name</item>
+        <item>@string/radio_rocks_name</item>
+        <item>@string/auto_radio_name</item>
+        <item>@string/fm181_hardrock_name</item>
+        <item>@string/fm181_rock_name</item>
+        <item>@string/fm181_hip_hop_name</item>
+        <item>@string/fm181_oldSchool_name</item>
+    </string-array>
+
+</resources>
