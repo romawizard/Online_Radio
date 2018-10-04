@@ -1,4 +1,4 @@
-package ru.roma.musicplayer;
+package ru.roma.musicplayer.service.notification;
 
 
 import android.app.Notification;
@@ -16,8 +16,11 @@ import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
-import static ru.roma.musicplayer.ExoPlayerAdapter.ARTIST;
-import static ru.roma.musicplayer.ExoPlayerAdapter.TITLE;
+import ru.roma.musicplayer.R;
+import ru.roma.musicplayer.ui.MainActivity;
+
+import static ru.roma.musicplayer.service.player.ExoPlayerImpl.ARTIST;
+import static ru.roma.musicplayer.service.player.ExoPlayerImpl.TITLE;
 
 public class MediaNotificationProvider {
 
@@ -25,33 +28,33 @@ public class MediaNotificationProvider {
     private static final String CHANNEL_ID = "ru.roma.musicplayer";
     private static final String CHANNEL_NAME = "MediaNotificationProvider";
 
-    private MediaPlayerService service;
+    private Context context;
     private NotificationCompat.Action actionPlay;
     private NotificationCompat.Action actionPause;
     private android.support.v4.media.app.NotificationCompat.MediaStyle style;
 
-    public MediaNotificationProvider(MediaPlayerService service) {
-        this.service = service;
+    public MediaNotificationProvider(Context context, MediaSessionCompat.Token token) {
+        this.context = context;
 
         actionPlay = new NotificationCompat.Action(R.drawable.play,
-                service.getResources().getString(R.string.play),
-                MediaButtonReceiver.buildMediaButtonPendingIntent(service.getApplicationContext(),PlaybackStateCompat.ACTION_PLAY));
+                context.getResources().getString(R.string.play),
+                MediaButtonReceiver.buildMediaButtonPendingIntent(context.getApplicationContext(),PlaybackStateCompat.ACTION_PLAY));
 
         actionPause = new NotificationCompat.Action(R.drawable.pause,
-                service.getResources().getString(R.string.pause),
-                MediaButtonReceiver.buildMediaButtonPendingIntent(service.getApplicationContext(),PlaybackStateCompat.ACTION_PAUSE));
+                context.getResources().getString(R.string.pause),
+                MediaButtonReceiver.buildMediaButtonPendingIntent(context.getApplicationContext(),PlaybackStateCompat.ACTION_PAUSE));
         style = new android.support.v4.media.app.NotificationCompat.MediaStyle()
-                .setMediaSession(service.getSessionToken())
+                .setMediaSession(token)
                 .setShowActionsInCompactView(0)
                 .setShowCancelButton(true)
                 .setCancelButtonIntent(MediaButtonReceiver
-                        .buildMediaButtonPendingIntent(service, PlaybackStateCompat.ACTION_STOP));
+                        .buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_STOP));
     }
 
     public Notification getNotification(PlaybackStateCompat state, MediaMetadataCompat metadata
-            , MediaSessionCompat.Token token){
-        String title = metadata.getString(TITLE);
-        String artist = metadata.getString(ARTIST);
+            ){
+        String title = metadata.getString(ExoPlayerImpl.TITLE);
+        String artist = metadata.getString(ExoPlayerImpl.ARTIST);
 
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O){
             createChannel();
@@ -64,16 +67,16 @@ public class MediaNotificationProvider {
             action = actionPlay;
         }
 
-        Notification notification = new NotificationCompat.Builder(service,CHANNEL_ID)
+        Notification notification = new NotificationCompat.Builder(context,CHANNEL_ID)
                 .setContentTitle(artist)
                 .setContentText(title)
                 .setContentIntent(createSessionActivity())
 
                 .addAction(action)
 
-                .setDeleteIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(service, PlaybackStateCompat.ACTION_STOP))
+                .setDeleteIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_STOP))
                 .setSmallIcon(R.drawable.radio_icon)
-                .setColor(ContextCompat.getColor(service, R.color.colorButton))
+                .setColor(ContextCompat.getColor(context, R.color.colorButton))
 
                 .setStyle(style)
 
@@ -87,7 +90,7 @@ public class MediaNotificationProvider {
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void createChannel() {
-        NotificationManager manager = (NotificationManager) service.getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager.getNotificationChannel(CHANNEL_ID) == null){
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW);
             channel.setLightColor(R.color.colorButton);
@@ -97,10 +100,15 @@ public class MediaNotificationProvider {
     }
 
     private PendingIntent createSessionActivity() {
-        Intent intent = new Intent(service, MainActivity.class);
+        Intent intent = new Intent(context, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-        return PendingIntent.getActivity(service, 0, intent, 0);
+        return PendingIntent.getActivity(context, 0, intent, 0);
     }
+
+    public void destroy(){
+        context = null;
+    }
+
 
 }
 

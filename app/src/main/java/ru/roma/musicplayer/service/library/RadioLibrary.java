@@ -1,4 +1,4 @@
-package ru.roma.musicplayer;
+package ru.roma.musicplayer.service.library;
 
 import android.media.browse.MediaBrowser;
 import android.net.Uri;
@@ -7,6 +7,9 @@ import android.support.v4.media.MediaDescriptionCompat;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import ru.roma.musicplayer.MediaPlayerApplication;
+import ru.roma.musicplayer.R;
 
 public class RadioLibrary {
 

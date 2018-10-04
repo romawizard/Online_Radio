@@ -1,4 +1,4 @@
-package ru.roma.musicplayer;
+package ru.roma.musicplayer.service;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -25,8 +25,12 @@ import android.util.Log;
 
 import java.util.List;
 
-import static ru.roma.musicplayer.ExoPlayerAdapter.ARTIST;
-import static ru.roma.musicplayer.ExoPlayerAdapter.TITLE;
+import ru.roma.musicplayer.R;
+import ru.roma.musicplayer.service.library.RadioLibrary;
+import ru.roma.musicplayer.service.notification.MediaNotificationProvider;
+import ru.roma.musicplayer.service.player.AbstractPlayer;
+import ru.roma.musicplayer.service.player.ExoPlayerImpl;
+import ru.roma.musicplayer.ui.MainActivity;
 
 public class MediaPlayerService extends MediaBrowserServiceCompat {
 
@@ -34,10 +38,11 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
     private static final String TAG = MediaPlayerService.class.getCanonicalName();
     private final String PLAYER_TAG = "Media Player Service";
     private MediaSessionCompat mediaSession;
-    private PlayerAdapter player;
+    private AbstractPlayer player;
     private AudioManager.OnAudioFocusChangeListener afChangeListener;
     private IntentFilter intentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
     private BecomingNoisyReceiver noisyReceiver = new BecomingNoisyReceiver();
+    private MediaNotificationManager notificationManager;
     private String url;
     private String currentStationName;
     private boolean isStarted = false;
@@ -49,20 +54,21 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
         super.onCreate();
         SharedPreferences preferences = getSharedPreferences(getString(R.string.app_name), MODE_PRIVATE);
         url = preferences.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, getString(R.string.comedy_radio));
-        player = new ExoPlayerAdapter(url, new PlayerListener());
+        player = new ExoPlayerImpl(url, new PlayerListener());
         afChangeListener = new FocusChangeListener();
+        startMediaPlayerService();
         initMediaSession();
+        notificationManager = new MediaNotificationManager();
     }
 
     private void initMediaSession() {
-        mediaSession = new MediaSessionCompat(getApplicationContext(), PLAYER_TAG);
+        mediaSession = new MediaSessionCompat(this, PLAYER_TAG);
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
                 MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
-//        mediaSession.setMediaButtonReceiver(createReceiver());
+//        mediaSession.setMediaButtonReceiver(null);
 
         PlaybackStateCompat.Builder stateBuilder = new PlaybackStateCompat.Builder().
-                setActions(PlaybackStateCompat.ACTION_PLAY |
-                        PlaybackStateCompat.ACTION_PLAY_PAUSE |
+                setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE |
                         PlaybackStateCompat.ACTION_STOP);
 
         mediaSession.setPlaybackState(stateBuilder.build());
@@ -74,18 +80,18 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
         setSessionToken(mediaSession.getSessionToken());
 
         MediaMetadataCompat metadata = new MediaMetadataCompat.Builder()
-                .putString(TITLE, "")
-                .putString(ARTIST, "")
+                .putString(ExoPlayerImpl.TITLE, "")
+                .putString(ExoPlayerImpl.ARTIST, "")
                 .build();
         mediaSession.setMetadata(metadata);
     }
 
     private PendingIntent createReceiver() {
-        ComponentName componentName = new ComponentName(this, MediaButtonReceiver.class);
+        ComponentName componentName = new ComponentName(getApplicationContext(), MediaButtonReceiver.class);
         Intent intent = new Intent(Intent.ACTION_MEDIA_BUTTON);
         intent.setComponent(componentName);
 
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         return pendingIntent;
     }
 
@@ -113,9 +119,9 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
         if (isReceiverRegistered) {
             unregisterReceiver(noisyReceiver);
         }
-        saveToSharedPreferences();
         player.release();
         mediaSession.release();
+        notificationManager.destroy();
     }
 
     @Override
@@ -128,7 +134,9 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
         SharedPreferences preferences = getSharedPreferences(getString(R.string.app_name), MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         editor.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, url);
-        editor.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, currentStationName);
+        if (!TextUtils.isEmpty(currentStationName)) {
+            editor.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, currentStationName);
+        }
         editor.apply();
     }
 
@@ -142,15 +150,26 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
         isStarted = true;
     }
 
-    private class MediaSessionCallback extends MediaSessionCompat.Callback {
+    @Override
+    public String toString() {
 
-        @Override
-        public boolean onMediaButtonEvent(Intent mediaButtonEvent) {
-//            Log.d(TAG, "onMediaButtonEvent" + mediaButtonEvent.getAction());
-            boolean result = super.onMediaButtonEvent(mediaButtonEvent);
-            Log.d(TAG,"onMediaButtonEvent  result = " + result);
-            return result;
+        String isAlive = "false";
+        if (mediaSession != null) {
+            if (mediaSession.isActive()) {
+                isAlive = "true";
+            }
         }
+        return super.toString() + '\'' +
+                "MediaPlayerService{" +
+                "url='" + url + '\'' +
+                ", isStarted=" + isStarted +
+                ", isReceiverRegistered=" + isReceiverRegistered +
+                ", mediaSession isAlive= " + isAlive +
+                '}';
+    }
+
+
+    private class MediaSessionCallback extends MediaSessionCompat.Callback {
 
         @Override
         public void onPlayFromMediaId(String mediaId, Bundle extras) {
@@ -190,24 +209,22 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
 
         @Override
         public void onPause() {
-            Log.d(TAG, "onPause");
+            Log.d(TAG, "onPause " + MediaPlayerService.this);
             if (isReceiverRegistered) {
                 unregisterReceiver(noisyReceiver);
                 isReceiverRegistered = false;
             }
             player.pause();
             stopForeground(false);
+
+            AudioManager audioManager = (AudioManager) MediaPlayerService.this.getSystemService(Context.AUDIO_SERVICE);
+            audioManager.abandonAudioFocus(afChangeListener);
         }
 
-        @Override
-        public void onSkipToNext() {
-            Log.d(TAG, "onSkipNext");
-            Log.d(TAG, mediaSession.getController().getPlaybackState().toString());
-        }
 
         @Override
         public void onStop() {
-            Log.d(TAG, "onStop");
+            Log.d(TAG,"onStop "+ MediaPlayerService.this);
             AudioManager audioManager = (AudioManager) MediaPlayerService.this.getSystemService(Context.AUDIO_SERVICE);
             audioManager.abandonAudioFocus(afChangeListener);
             if (isReceiverRegistered) {
@@ -225,18 +242,10 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
     }
 
 
-    private class PlayerListener implements PlayerAdapter.OnPlayerListener {
-
-        MediaNotificationManager notificationManager;
-
-
-        public PlayerListener() {
-            notificationManager = new MediaNotificationManager();
-        }
+    private class PlayerListener implements AbstractPlayer.OnPlayerListener {
 
         @Override
         public void onStateChanged(PlaybackStateCompat state) {
-            Log.d(TAG,"player changed its state");
             mediaSession.setPlaybackState(state);
             switch (state.getState()) {
                 case PlaybackStateCompat.STATE_PLAYING:
@@ -286,8 +295,9 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
 
         private MediaNotificationProvider provider;
 
-        public MediaNotificationManager() {
-            provider = new MediaNotificationProvider(MediaPlayerService.this);
+        MediaNotificationManager() {
+            MediaSessionCompat.Token token = mediaSession.getSessionToken();
+            provider = new MediaNotificationProvider(getApplicationContext(), token);
         }
 
         public void showNotification(PlaybackStateCompat state) {
@@ -295,9 +305,9 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
                 return;
             }
             MediaMetadataCompat metadata = mediaSession.getController().getMetadata();
-            MediaSessionCompat.Token token = mediaSession.getSessionToken();
 
-            Notification notification = provider.getNotification(state, metadata, token);
+
+            Notification notification = provider.getNotification(state, metadata);
 
             if (state.getState() == PlaybackStateCompat.STATE_PLAYING) {
                 startForeground(MediaNotificationProvider.NOTIFICATION_ID, notification);
@@ -307,6 +317,10 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
                         .getSystemService(Context.NOTIFICATION_SERVICE);
                 manager.notify(MediaNotificationProvider.NOTIFICATION_ID, notification);
             }
+        }
+
+        void destroy() {
+            provider.destroy();
         }
     }
 

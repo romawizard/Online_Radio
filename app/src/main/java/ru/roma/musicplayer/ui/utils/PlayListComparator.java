@@ -1,10 +1,10 @@
-package ru.roma.musicplayer;
+package ru.roma.musicplayer.ui.utils;
 
 import android.support.v4.media.session.MediaSessionCompat;
 
 import java.util.Comparator;
 
-import static ru.roma.musicplayer.ExoPlayerAdapter.TIME;
+import static ru.roma.musicplayer.service.player.ExoPlayerImpl.TIME;
 
 public class PlayListComparator implements Comparator<MediaSessionCompat.QueueItem> {
     @Override

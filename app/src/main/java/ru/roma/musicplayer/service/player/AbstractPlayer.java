@@ -1,16 +1,16 @@
-package ru.roma.musicplayer;
+package ru.roma.musicplayer.service.player;
 
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
 import java.util.List;
 
-public abstract class PlayerAdapter {
+public abstract class AbstractPlayer {
 
     protected PlaybackStateCompat.Builder builder;
     protected OnPlayerListener listener;
 
-    protected PlayerAdapter(OnPlayerListener listener) {
+    AbstractPlayer(OnPlayerListener listener) {
         this.listener = listener;
         builder = new PlaybackStateCompat.Builder()
                 .setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE |
@@ -31,12 +31,7 @@ public abstract class PlayerAdapter {
 
     public abstract void setUrlStation(String url);
 
-    public void setListener(OnPlayerListener listener) {
-        this.listener = listener;
-    }
-
     public abstract void release();
-
 
     protected void changeStateToPlaying() {
         PlaybackStateCompat state = builder.setState(PlaybackStateCompat.STATE_PLAYING

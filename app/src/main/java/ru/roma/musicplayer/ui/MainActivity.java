@@ -1,4 +1,4 @@
-package ru.roma.musicplayer;
+package ru.roma.musicplayer.ui;
 
 import android.animation.ValueAnimator;
 import android.content.ComponentName;
@@ -27,15 +27,16 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import ru.roma.musicplayer.service.MediaPlayerService;
+import ru.roma.musicplayer.R;
+import ru.roma.musicplayer.ui.adaptaer.PlayListAdapter;
 
-import static ru.roma.musicplayer.ExoPlayerAdapter.ARTIST;
-import static ru.roma.musicplayer.ExoPlayerAdapter.TITLE;
+import static ru.roma.musicplayer.service.player.ExoPlayerImpl.ARTIST;
+import static ru.roma.musicplayer.service.player.ExoPlayerImpl.TITLE;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getCanonicalName();
-
-
     @BindView(R.id.play_stop)
     Button playStop;
     @BindView(R.id.textViewError)
@@ -52,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private MediaControllerCallBack mediaControllerCallBack;
     private ValueAnimator animator;
     private ClickHandler clickHandler;
-    private MusicListAdapter adapter;
+    private PlayListAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,7 +100,6 @@ public class MainActivity extends AppCompatActivity {
             String title = bundle.getString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE);
             getSupportActionBar().setTitle(title);
         }
-
     }
 
     private void showMetadata(MediaMetadataCompat metadata) {
@@ -127,11 +127,7 @@ public class MainActivity extends AppCompatActivity {
         }
         mediaBrowserCompat.disconnect();
     }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
+    
 
     private void animateBuffering() {
         if (animator == null) {
@@ -174,18 +170,18 @@ public class MainActivity extends AppCompatActivity {
                 playStop.setBackground(getResources().getDrawable(R.drawable.stop));
                 break;
             case PlaybackStateCompat.STATE_PAUSED:
-                showInitState();
+                playStop.setBackground(getResources().getDrawable(R.drawable.play));
                 break;
             case PlaybackStateCompat.STATE_BUFFERING:
                 animateBuffering();
                 break;
             case PlaybackStateCompat.STATE_STOPPED:
             case PlaybackStateCompat.STATE_NONE:
-                playStop.setBackground(getResources().getDrawable(R.drawable.play));
+                showInitState();
                 break;
             case PlaybackStateCompat.STATE_ERROR:
-                showErrorMessage(state.getErrorMessage());
                 showInitState();
+                showErrorMessage(state.getErrorMessage());
                 Log.d(TAG, state.getErrorMessage().toString());
                 break;
         }
@@ -211,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
         final LinearLayoutManager lm = new LinearLayoutManager(this);
         lm.setOrientation(LinearLayoutManager.VERTICAL);
 
-        adapter = new MusicListAdapter();
+        adapter = new PlayListAdapter();
         list.setLayoutManager(lm);
         list.setAdapter(adapter);
     }

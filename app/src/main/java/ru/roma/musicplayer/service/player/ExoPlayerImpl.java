@@ -1,4 +1,4 @@
-package ru.roma.musicplayer;
+package ru.roma.musicplayer.service.player;
 
 import android.net.Uri;
 import android.os.Bundle;
@@ -26,16 +26,18 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import ru.roma.musicplayer.MediaPlayerApplication;
+import ru.roma.musicplayer.ui.utils.PlayListComparator;
 import saschpe.exoplayer2.ext.icy.IcyHttpDataSource;
 import saschpe.exoplayer2.ext.icy.IcyHttpDataSourceFactory;
 
-public class ExoPlayerAdapter extends PlayerAdapter {
+public class ExoPlayerImpl extends AbstractPlayer {
 
     public static final String TITLE = "title";
     public static final String ARTIST = "artist";
     public static final String TIME = "time";
     private static final String NAME = "ru.roma.musicplayer";
-    private final String TAG = ExoPlayerAdapter.class.getCanonicalName();
+    private final String TAG = ExoPlayerImpl.class.getCanonicalName();
     private final List<MediaSessionCompat.QueueItem> playList;
     private String source;
     private SimpleExoPlayer player;
@@ -43,7 +45,7 @@ public class ExoPlayerAdapter extends PlayerAdapter {
     private ExtractorsFactory extractorsFactory;
     private DefaultDataSourceFactory dataSourceFactory;
 
-    public ExoPlayerAdapter(String source, OnPlayerListener listener) {
+    public ExoPlayerImpl(String source, OnPlayerListener listener) {
         super(listener);
         this.source = source;
         playList = new ArrayList<>();

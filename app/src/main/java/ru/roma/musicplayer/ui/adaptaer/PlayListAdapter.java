@@ -1,4 +1,4 @@
-package ru.roma.musicplayer;
+package ru.roma.musicplayer.ui.adaptaer;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -6,7 +6,6 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,12 +16,14 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-import static ru.roma.musicplayer.ExoPlayerAdapter.TIME;
+import ru.roma.musicplayer.R;
 
-public class MusicListAdapter extends RecyclerView.Adapter<MusicListAdapter.MusicViewHolder> {
+import static ru.roma.musicplayer.service.player.ExoPlayerImpl.TIME;
+
+public class PlayListAdapter extends RecyclerView.Adapter<PlayListAdapter.MusicViewHolder> {
 
     private List<MediaSessionCompat.QueueItem> playList;
-    private final String TAG = MusicListAdapter.class.getCanonicalName();
+    private final String TAG = PlayListAdapter.class.getCanonicalName();
 
     @NonNull
     @Override

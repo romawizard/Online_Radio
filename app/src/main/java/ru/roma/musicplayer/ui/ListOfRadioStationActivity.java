@@ -1,11 +1,10 @@
-package ru.roma.musicplayer;
+package ru.roma.musicplayer.ui;
 
 import android.content.ComponentName;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.v4.media.MediaBrowserCompat;
-import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v7.app.ActionBar;
@@ -21,6 +20,9 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import ru.roma.musicplayer.service.MediaPlayerService;
+import ru.roma.musicplayer.R;
+import ru.roma.musicplayer.ui.adaptaer.RadioStationsAdapter;
 
 public class ListOfRadioStationActivity extends AppCompatActivity implements RadioStationsAdapter.OnStationChange {
 

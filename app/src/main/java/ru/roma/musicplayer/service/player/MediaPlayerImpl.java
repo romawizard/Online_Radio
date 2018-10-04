@@ -1,24 +1,25 @@
-package ru.roma.musicplayer;
+package ru.roma.musicplayer.service.player;
 
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
 import android.os.PowerManager;
-import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
 import java.io.IOException;
 
-public class MediaPlayerAdapter extends PlayerAdapter implements MediaPlayer.OnPreparedListener,
+import ru.roma.musicplayer.MediaPlayerApplication;
+
+public class MediaPlayerImpl extends AbstractPlayer implements MediaPlayer.OnPreparedListener,
         MediaPlayer.OnErrorListener, MediaPlayer.OnBufferingUpdateListener {
 
-    private final String TAG = MediaPlayerAdapter.class.getCanonicalName();
+    private final String TAG = MediaPlayerImpl.class.getCanonicalName();
     private WifiManager.WifiLock lock;
     private MediaPlayer player;
     private String source;
     private boolean isPrepared;
 
-    public MediaPlayerAdapter(String source, OnPlayerListener listener) {
+    public MediaPlayerImpl(String source, OnPlayerListener listener) {
         super(listener);
         this.source = source;
     }
