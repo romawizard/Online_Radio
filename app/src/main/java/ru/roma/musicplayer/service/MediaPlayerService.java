@@ -32,6 +32,7 @@ import ru.roma.musicplayer.service.player.AbstractPlayer;
 import ru.roma.musicplayer.service.player.ExoPlayerImpl;
 import ru.roma.musicplayer.ui.MainActivity;
 
+
 public class MediaPlayerService extends MediaBrowserServiceCompat {
 
     public static final String PARENT_ID = "parent_id";
@@ -56,20 +57,22 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
         url = preferences.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, getString(R.string.comedy_radio));
         player = new ExoPlayerImpl(url, new PlayerListener());
         afChangeListener = new FocusChangeListener();
-        startMediaPlayerService();
+//        startMediaPlayerService();
         initMediaSession();
         notificationManager = new MediaNotificationManager();
+
     }
 
     private void initMediaSession() {
         mediaSession = new MediaSessionCompat(this, PLAYER_TAG);
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
                 MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
-//        mediaSession.setMediaButtonReceiver(null);
+        mediaSession.setMediaButtonReceiver(null);
 
         PlaybackStateCompat.Builder stateBuilder = new PlaybackStateCompat.Builder().
                 setActions(PlaybackStateCompat.ACTION_PLAY_PAUSE |
-                        PlaybackStateCompat.ACTION_STOP);
+                        PlaybackStateCompat.ACTION_STOP |
+                        PlaybackStateCompat.ACTION_PLAY);
 
         mediaSession.setPlaybackState(stateBuilder.build());
 
@@ -84,6 +87,7 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
                 .putString(ExoPlayerImpl.ARTIST, "")
                 .build();
         mediaSession.setMetadata(metadata);
+
     }
 
     private PendingIntent createReceiver() {
@@ -91,7 +95,8 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
         Intent intent = new Intent(Intent.ACTION_MEDIA_BUTTON);
         intent.setComponent(componentName);
 
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
         return pendingIntent;
     }
 
@@ -100,6 +105,7 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
         return PendingIntent.getActivity(this, 0, intent, 0);
     }
+
 
     @Nullable
     @Override
@@ -141,13 +147,14 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
     }
 
     private void startMediaPlayerService() {
-        Intent intent = (new Intent(MediaPlayerService.this, MediaPlayerService.class));
+        Intent intent = new Intent(MediaPlayerService.this, MediaPlayerService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(intent);
         } else {
             startService(intent);
         }
         isStarted = true;
+        Log.d(TAG, "Service is started");
     }
 
     @Override
@@ -195,6 +202,7 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
             if (!isStarted) {
                 startMediaPlayerService();
             }
+            startForeground(MediaNotificationProvider.NOTIFICATION_ID, notificationManager.provider.getBufferingNotification());
             if (!isReceiverRegistered) {
                 registerReceiver(noisyReceiver, intentFilter);
                 isReceiverRegistered = true;
@@ -217,14 +225,13 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
             player.pause();
             stopForeground(false);
 
-            AudioManager audioManager = (AudioManager) MediaPlayerService.this.getSystemService(Context.AUDIO_SERVICE);
-            audioManager.abandonAudioFocus(afChangeListener);
+//            AudioManager audioManager = (AudioManager) MediaPlayerService.this.getSystemService(Context.AUDIO_SERVICE);
+//            audioManager.abandonAudioFocus(afChangeListener);
         }
-
 
         @Override
         public void onStop() {
-            Log.d(TAG,"onStop "+ MediaPlayerService.this);
+            Log.d(TAG, "onStop " + MediaPlayerService.this);
             AudioManager audioManager = (AudioManager) MediaPlayerService.this.getSystemService(Context.AUDIO_SERVICE);
             audioManager.abandonAudioFocus(afChangeListener);
             if (isReceiverRegistered) {
@@ -256,6 +263,9 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
                     stopForeground(true);
                     break;
                 }
+                case PlaybackStateCompat.STATE_ERROR:
+                    notificationManager.showNotification(state);
+                    break;
             }
         }
 
@@ -274,6 +284,8 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
 
     private class FocusChangeListener implements AudioManager.OnAudioFocusChangeListener {
 
+        boolean isPlayingBeforeLossAudioFocus = false;
+
         @Override
         public void onAudioFocusChange(int focusChange) {
             switch (focusChange) {
@@ -281,10 +293,13 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
                     mediaSession.getController().getTransportControls().stop();
                     break;
                 case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                    isPlayingBeforeLossAudioFocus = player.isPlaying();
                     mediaSession.getController().getTransportControls().pause();
                     break;
                 case AudioManager.AUDIOFOCUS_REQUEST_GRANTED:
-                    mediaSession.getController().getTransportControls().play();
+                    if (isPlayingBeforeLossAudioFocus) {
+                        mediaSession.getController().getTransportControls().play();
+                    }
                     break;
             }
         }
@@ -302,11 +317,18 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
 
         public void showNotification(PlaybackStateCompat state) {
             if (state.getState() == PlaybackStateCompat.STATE_NONE || state.getState() == PlaybackStateCompat.STATE_STOPPED) {
+                startForeground(MediaNotificationProvider.NOTIFICATION_ID, provider.getEmptyNotification());
                 return;
             }
+            if (state.getState() == PlaybackStateCompat.STATE_ERROR) {
+                NotificationManager manager = (NotificationManager) MediaPlayerService.this
+                        .getSystemService(Context.NOTIFICATION_SERVICE);
+                manager.notify(MediaNotificationProvider.NOTIFICATION_ID, provider.getErrorNotification());
+                stopForeground(false);
+                return;
+            }
+
             MediaMetadataCompat metadata = mediaSession.getController().getMetadata();
-
-
             Notification notification = provider.getNotification(state, metadata);
 
             if (state.getState() == PlaybackStateCompat.STATE_PLAYING) {
