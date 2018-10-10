@@ -44,6 +44,7 @@ public class ExoPlayerImpl extends AbstractPlayer {
     private Comparator comparator;
     private ExtractorsFactory extractorsFactory;
     private DefaultDataSourceFactory dataSourceFactory;
+    private static int id = 0;
 
     public ExoPlayerImpl(String source, OnPlayerListener listener) {
         super(listener);
@@ -212,6 +213,15 @@ public class ExoPlayerImpl extends AbstractPlayer {
                 return;
             }
 
+            if (playList.size()>=1){
+                String lastTitle =  playList.get(0).getDescription().getTitle().toString();
+                String lastArtist =  playList.get(0).getDescription().getSubtitle().toString();
+                if (TextUtils.equals(lastArtist,artist) && TextUtils.equals(lastTitle,title)){
+                    Log.d(TAG,"equals content");
+                    return;
+                }
+            }
+
             Bundle bundle = new Bundle();
             bundle.putLong(TIME, System.currentTimeMillis());
             MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
@@ -219,8 +229,9 @@ public class ExoPlayerImpl extends AbstractPlayer {
                     .setSubtitle(artist)
                     .setExtras(bundle)
                     .build();
-            MediaSessionCompat.QueueItem item = new MediaSessionCompat.QueueItem(description, playList.size());
+            MediaSessionCompat.QueueItem item = new MediaSessionCompat.QueueItem(description,id++);
             playList.add(item);
+
             Collections.sort(playList, comparator);
 
             MediaMetadataCompat metadata = new MediaMetadataCompat.Builder()

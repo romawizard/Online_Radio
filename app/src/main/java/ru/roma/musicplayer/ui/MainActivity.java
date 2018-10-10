@@ -4,6 +4,7 @@ import android.animation.ValueAnimator;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.RemoteException;
@@ -14,6 +15,7 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -21,14 +23,19 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import jp.wasabeef.recyclerview.animators.SlideInDownAnimator;
+import jp.wasabeef.recyclerview.animators.SlideInLeftAnimator;
+import jp.wasabeef.recyclerview.animators.SlideInRightAnimator;
 import ru.roma.musicplayer.service.MediaPlayerService;
 import ru.roma.musicplayer.R;
+import ru.roma.musicplayer.ui.adaptaer.DiffUtilPlayList;
 import ru.roma.musicplayer.ui.adaptaer.PlayListAdapter;
 
 import static ru.roma.musicplayer.service.player.ExoPlayerImpl.ARTIST;
@@ -54,8 +61,7 @@ public class MainActivity extends AppCompatActivity {
     private ValueAnimator animator;
     private ClickHandler clickHandler;
     private PlayListAdapter adapter;
-
-    @Override
+       @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -65,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
                 , new MediaBrowserConnectionCallback(), null);
 
         mediaControllerCallBack = new MediaControllerCallBack();
-        initializeRecycleList(playList);
+        initializeRecycleList();
         initActionBar();
     }
 
@@ -90,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
         playStop.setOnClickListener(clickHandler);
 
         List queue = MediaControllerCompat.getMediaController(MainActivity.this).getQueue();
-        adapter.setPlayList(queue);
+        dispatchQueueToAdapter(queue);
 
         MediaControllerCompat mediaController = MediaControllerCompat.getMediaController(MainActivity.this);
         mediaController.registerCallback(mediaControllerCallBack);
@@ -127,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
         }
         mediaBrowserCompat.disconnect();
     }
-    
+
 
     private void animateBuffering() {
         if (animator == null) {
@@ -168,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
         switch (state.getState()) {
             case PlaybackStateCompat.STATE_PLAYING:
                 playStop.setBackground(getResources().getDrawable(R.drawable.stop));
+                showMetadata(MediaControllerCompat.getMediaController(MainActivity.this).getMetadata());
                 break;
             case PlaybackStateCompat.STATE_PAUSED:
                 playStop.setBackground(getResources().getDrawable(R.drawable.play));
@@ -203,13 +210,14 @@ public class MainActivity extends AppCompatActivity {
         textViewError.setVisibility(View.VISIBLE);
     }
 
-    private void initializeRecycleList(RecyclerView list) {
+    private void initializeRecycleList() {
         final LinearLayoutManager lm = new LinearLayoutManager(this);
         lm.setOrientation(LinearLayoutManager.VERTICAL);
 
         adapter = new PlayListAdapter();
-        list.setLayoutManager(lm);
-        list.setAdapter(adapter);
+        playList.setLayoutManager(lm);
+        playList.setAdapter(adapter);
+        playList.setItemAnimator(new SlideInRightAnimator());
     }
 
     @Override
@@ -259,8 +267,17 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onQueueChanged(List<MediaSessionCompat.QueueItem> queue) {
-            adapter.setPlayList(queue);
+            Log.d(TAG,"onQueueChanged " + queue.toString());
+            dispatchQueueToAdapter(queue);
+
         }
+    }
+
+    private void dispatchQueueToAdapter(List<MediaSessionCompat.QueueItem> queue) {
+        DiffUtilPlayList diffUtilPlayList = new DiffUtilPlayList(adapter.getPlayList(), queue);
+        DiffUtil.DiffResult result = DiffUtil.calculateDiff(diffUtilPlayList);
+        adapter.setPlayList(queue);
+        result.dispatchUpdatesTo(adapter);
     }
 
     private class ClickHandler implements View.OnClickListener {

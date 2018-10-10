@@ -6,8 +6,7 @@
     <color name="black">#000000</color>
     <color name="colorButton">#3f8dda</color>
     <color name="colorGray">#84808080</color>
-    <color name="colorGrayTransparent">#84e1dddd</color>
+    <color name="colorGrayTransparent">#84e9e9ea</color>
     <color name="colorRed">#ff0000</color>
-
 
 </resources>

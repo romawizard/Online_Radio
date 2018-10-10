@@ -12,7 +12,8 @@
         android:layout_marginStart="8dp"
         android:textColor="@color/black"
         android:textStyle="bold"
-        app:layout_constraintStart_toEndOf="@+id/imageView3"
+        android:scrollbarAlwaysDrawHorizontalTrack="true"
+        app:layout_constraintStart_toEndOf="@+id/playListIcon"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
@@ -23,12 +24,13 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:textColor="@color/black"
+        android:scrollbarAlwaysDrawHorizontalTrack="true"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/imageView3"
+        app:layout_constraintStart_toEndOf="@+id/playListIcon"
         app:layout_constraintTop_toBottomOf="@+id/playListArtist" />
 
     <ImageView
-        android:id="@+id/imageView3"
+        android:id="@+id/playListIcon"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_marginStart="8dp"

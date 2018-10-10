@@ -6,20 +6,21 @@
     android:layout_height="match_parent"
     tools:context=".ui.MainActivity">
 
+        <android.support.v7.widget.AppCompatButton
+            android:id="@+id/play_stop"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:background="@drawable/play"
+            android:backgroundTint="@color/colorButton"
+            android:foreground="@drawable/ripple"
+            android:clickable="true"
+            android:focusable="true"
+            android:translationZ="2dp"
+            app:layout_constraintBottom_toTopOf="@+id/headerPlayList"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+           />
 
-    <Button
-        android:id="@+id/play_stop"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:background="@drawable/play"
-        android:translationZ="2dp"
-        android:backgroundTint="@color/colorButton"
-        app:layout_constraintBottom_toTopOf="@+id/headerPlayList"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
         android:id="@+id/artist"

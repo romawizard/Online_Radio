@@ -3,12 +3,15 @@ package ru.roma.musicplayer.ui.adaptaer;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,6 +27,7 @@ public class PlayListAdapter extends RecyclerView.Adapter<PlayListAdapter.MusicV
 
     private List<MediaSessionCompat.QueueItem> playList;
     private final String TAG = PlayListAdapter.class.getCanonicalName();
+
 
     @NonNull
     @Override
@@ -45,8 +49,13 @@ public class PlayListAdapter extends RecyclerView.Adapter<PlayListAdapter.MusicV
 
     public void setPlayList(List<MediaSessionCompat.QueueItem> playList) {
         this.playList = playList;
-        notifyDataSetChanged();
     }
+
+    public List<MediaSessionCompat.QueueItem> getPlayList() {
+        return playList;
+    }
+
+
 
     public class  MusicViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 

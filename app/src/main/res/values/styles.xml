@@ -13,4 +13,8 @@
         <item name="colorPrimaryDark">@color/colorButton</item>
     </style>
 
+    <style name="RippleButton" parent="Base.TextAppearance.AppCompat.Widget.Button.Colored">
+
+    </style>
+
 </resources>

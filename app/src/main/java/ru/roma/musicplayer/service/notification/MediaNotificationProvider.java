@@ -17,10 +17,8 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
 import ru.roma.musicplayer.R;
+import ru.roma.musicplayer.service.player.ExoPlayerImpl;
 import ru.roma.musicplayer.ui.MainActivity;
-
-import static ru.roma.musicplayer.service.player.ExoPlayerImpl.ARTIST;
-import static ru.roma.musicplayer.service.player.ExoPlayerImpl.TITLE;
 
 public class MediaNotificationProvider {
 
@@ -32,42 +30,50 @@ public class MediaNotificationProvider {
     private NotificationCompat.Action actionPlay;
     private NotificationCompat.Action actionPause;
     private android.support.v4.media.app.NotificationCompat.MediaStyle style;
+    private android.support.v4.media.app.NotificationCompat.MediaStyle emptyStyle;
+
 
     public MediaNotificationProvider(Context context, MediaSessionCompat.Token token) {
         this.context = context;
 
         actionPlay = new NotificationCompat.Action(R.drawable.play,
                 context.getResources().getString(R.string.play),
-                MediaButtonReceiver.buildMediaButtonPendingIntent(context.getApplicationContext(),PlaybackStateCompat.ACTION_PLAY));
+                MediaButtonReceiver.buildMediaButtonPendingIntent(context.getApplicationContext(), PlaybackStateCompat.ACTION_PLAY));
 
         actionPause = new NotificationCompat.Action(R.drawable.pause,
                 context.getResources().getString(R.string.pause),
-                MediaButtonReceiver.buildMediaButtonPendingIntent(context.getApplicationContext(),PlaybackStateCompat.ACTION_PAUSE));
+                MediaButtonReceiver.buildMediaButtonPendingIntent(context.getApplicationContext(), PlaybackStateCompat.ACTION_PAUSE));
         style = new android.support.v4.media.app.NotificationCompat.MediaStyle()
                 .setMediaSession(token)
                 .setShowActionsInCompactView(0)
                 .setShowCancelButton(true)
                 .setCancelButtonIntent(MediaButtonReceiver
                         .buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_STOP));
+
+        emptyStyle = new android.support.v4.media.app.NotificationCompat.MediaStyle()
+                .setMediaSession(token)
+                .setShowCancelButton(true)
+                .setCancelButtonIntent(MediaButtonReceiver
+                        .buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_STOP));
+
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
+            createChannel();
+        }
     }
 
     public Notification getNotification(PlaybackStateCompat state, MediaMetadataCompat metadata
-            ){
+    ) {
         String title = metadata.getString(ExoPlayerImpl.TITLE);
         String artist = metadata.getString(ExoPlayerImpl.ARTIST);
 
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O){
-            createChannel();
-        }
-
         NotificationCompat.Action action;
-        if (state.getState() == PlaybackStateCompat.STATE_PLAYING){
+        if (state.getState() == PlaybackStateCompat.STATE_PLAYING) {
             action = actionPause;
-        }else {
+        } else {
             action = actionPlay;
         }
 
-        Notification notification = new NotificationCompat.Builder(context,CHANNEL_ID)
+        Notification notification = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setContentTitle(artist)
                 .setContentText(title)
                 .setContentIntent(createSessionActivity())
@@ -88,10 +94,41 @@ public class MediaNotificationProvider {
         return notification;
     }
 
+    public Notification getErrorNotification() {
+        return builtNotification("Error", "check what happened");
+    }
+
+    public Notification getBufferingNotification() {
+        return builtNotification("Buffering", "please waite...");
+    }
+
+    public Notification getEmptyNotification(){
+        return builtNotification("","");
+    }
+
+    private Notification builtNotification(String title, String text) {
+        return new NotificationCompat.Builder(context, CHANNEL_ID)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setContentIntent(createSessionActivity())
+
+                .setDeleteIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_STOP))
+                .setSmallIcon(R.drawable.radio_icon)
+                .setColor(ContextCompat.getColor(context, R.color.colorButton))
+
+                .setStyle(emptyStyle)
+
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setShowWhen(false)
+
+                .build();
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void createChannel() {
         NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        if (manager.getNotificationChannel(CHANNEL_ID) == null){
+        if (manager.getNotificationChannel(CHANNEL_ID) == null) {
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW);
             channel.setLightColor(R.color.colorButton);
             channel.setLockscreenVisibility(NotificationCompat.VISIBILITY_PUBLIC);
@@ -105,7 +142,7 @@ public class MediaNotificationProvider {
         return PendingIntent.getActivity(context, 0, intent, 0);
     }
 
-    public void destroy(){
+    public void destroy() {
         context = null;
     }
 
