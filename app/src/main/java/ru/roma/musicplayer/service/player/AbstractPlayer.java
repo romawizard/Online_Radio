@@ -29,7 +29,7 @@ public abstract class AbstractPlayer {
 
     public abstract void skipPrevious();
 
-    public abstract void setUrlStation(String url);
+    public abstract void prepare(String url);
 
     public abstract void release();
 

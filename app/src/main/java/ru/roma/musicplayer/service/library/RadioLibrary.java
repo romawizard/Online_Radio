@@ -8,6 +8,8 @@ import android.net.Uri;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -17,7 +19,7 @@ import ru.roma.musicplayer.R;
 
 public class RadioLibrary {
 
-    private static final Map<String, MediaBrowserCompat.MediaItem> radioStations = new TreeMap<>();
+    private static final Map<String, MediaBrowserCompat.MediaItem> radioStations = new LinkedHashMap<>();
 
     static {
         fillRadioStations();
@@ -47,14 +49,17 @@ public class RadioLibrary {
     }
 
     public static List<MediaBrowserCompat.MediaItem> getMediaItems() {
-        return (List<MediaBrowserCompat.MediaItem>) radioStations.values();
+        return new ArrayList<>( radioStations.values());
     }
 
-    public MediaBrowserCompat.MediaItem getMediaItemById(String id){
+    public static MediaBrowserCompat.MediaItem getMediaItemById(String id){
         return radioStations.get(id);
     }
 
-    public Bitmap getBitmapById(String id){
+    public static Bitmap getBitmapById(String id){
         return radioStations.get(id).getDescription().getIconBitmap();
+    }
+    public static String getUrlById(String id){
+        return radioStations.get(id).getDescription().getMediaUri().toString();
     }
 }

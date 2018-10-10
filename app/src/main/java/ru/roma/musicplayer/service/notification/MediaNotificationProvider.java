@@ -17,6 +17,7 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
 import ru.roma.musicplayer.R;
+import ru.roma.musicplayer.service.library.RadioLibrary;
 import ru.roma.musicplayer.service.player.ExoPlayerImpl;
 import ru.roma.musicplayer.ui.MainActivity;
 
@@ -63,8 +64,8 @@ public class MediaNotificationProvider {
 
     public Notification getNotification(PlaybackStateCompat state, MediaMetadataCompat metadata
     ) {
-        String title = metadata.getString(ExoPlayerImpl.TITLE);
-        String artist = metadata.getString(ExoPlayerImpl.ARTIST);
+        String title = metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE);
+        String artist = metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST);
 
         NotificationCompat.Action action;
         if (state.getState() == PlaybackStateCompat.STATE_PLAYING) {
@@ -80,6 +81,7 @@ public class MediaNotificationProvider {
 
                 .addAction(action)
 
+                .setLargeIcon(RadioLibrary.getBitmapById(metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)))
                 .setDeleteIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_STOP))
                 .setSmallIcon(R.drawable.radio_icon)
                 .setColor(ContextCompat.getColor(context, R.color.colorButton))

@@ -84,7 +84,7 @@ public class MediaPlayerImpl extends AbstractPlayer implements MediaPlayer.OnPre
     }
 
     @Override
-    public void setUrlStation(String url) {
+    public void prepare(String url) {
 
     }
 

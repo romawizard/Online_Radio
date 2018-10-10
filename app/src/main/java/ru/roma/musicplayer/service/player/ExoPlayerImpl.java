@@ -27,28 +27,27 @@ import java.util.Comparator;
 import java.util.List;
 
 import ru.roma.musicplayer.MediaPlayerApplication;
+import ru.roma.musicplayer.service.library.RadioLibrary;
 import ru.roma.musicplayer.ui.utils.PlayListComparator;
 import saschpe.exoplayer2.ext.icy.IcyHttpDataSource;
 import saschpe.exoplayer2.ext.icy.IcyHttpDataSourceFactory;
 
 public class ExoPlayerImpl extends AbstractPlayer {
 
-    public static final String TITLE = "title";
-    public static final String ARTIST = "artist";
     public static final String TIME = "time";
     private static final String NAME = "ru.roma.musicplayer";
     private final String TAG = ExoPlayerImpl.class.getCanonicalName();
     private final List<MediaSessionCompat.QueueItem> playList;
-    private String source;
+    private String mediaId;
     private SimpleExoPlayer player;
     private Comparator comparator;
     private ExtractorsFactory extractorsFactory;
     private DefaultDataSourceFactory dataSourceFactory;
     private static int id = 0;
 
-    public ExoPlayerImpl(String source, OnPlayerListener listener) {
+    public ExoPlayerImpl(String media, OnPlayerListener listener) {
         super(listener);
-        this.source = source;
+        this.mediaId = media;
         playList = new ArrayList<>();
         comparator = new PlayListComparator();
     }
@@ -74,7 +73,7 @@ public class ExoPlayerImpl extends AbstractPlayer {
     private ExtractorMediaSource createMediaSource() {
         return new ExtractorMediaSource.Factory(dataSourceFactory).
                 setExtractorsFactory(extractorsFactory)
-                .createMediaSource(Uri.parse(source));
+                .createMediaSource(Uri.parse(RadioLibrary.getUrlById(mediaId)));
     }
 
     @Override
@@ -115,8 +114,8 @@ public class ExoPlayerImpl extends AbstractPlayer {
     }
 
     @Override
-    public void setUrlStation(String url) {
-        source = url;
+    public void prepare(String mediaId) {
+        this.mediaId = mediaId;
         playList.clear();
         listener.OnPlayListChanged(playList);
         listener.onMetadataChanged(createEmptyMetadata());
@@ -127,8 +126,9 @@ public class ExoPlayerImpl extends AbstractPlayer {
 
     private MediaMetadataCompat createEmptyMetadata() {
         return  new MediaMetadataCompat.Builder()
-                .putString(TITLE, "")
-                .putString(ARTIST, "")
+                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID,mediaId)
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "")
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "")
                 .build();
     }
 
@@ -225,6 +225,7 @@ public class ExoPlayerImpl extends AbstractPlayer {
             Bundle bundle = new Bundle();
             bundle.putLong(TIME, System.currentTimeMillis());
             MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
+                    .setMediaId(mediaId)
                     .setTitle(title)
                     .setSubtitle(artist)
                     .setExtras(bundle)
@@ -235,8 +236,9 @@ public class ExoPlayerImpl extends AbstractPlayer {
             Collections.sort(playList, comparator);
 
             MediaMetadataCompat metadata = new MediaMetadataCompat.Builder()
-                    .putString(TITLE, title)
-                    .putString(ARTIST, artist)
+                    .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID,mediaId)
+                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
                     .build();
 
             listener.onMetadataChanged(metadata);

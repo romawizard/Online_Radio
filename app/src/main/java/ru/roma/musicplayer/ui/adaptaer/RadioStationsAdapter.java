@@ -1,12 +1,10 @@
 package ru.roma.musicplayer.ui.adaptaer;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.media.MediaBrowserCompat;
-import android.support.v4.media.MediaMetadataCompat;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -19,14 +17,14 @@ import java.util.List;
 
 import es.claucookie.miniequalizerlibrary.EqualizerView;
 import ru.roma.musicplayer.R;
+import ru.roma.musicplayer.service.library.RadioLibrary;
 
 
 public class RadioStationsAdapter extends RecyclerView.Adapter<RadioStationsAdapter.StationsHolder> {
 
     public static final String TAG = RadioStationsAdapter.class.getCanonicalName();
     private List<MediaBrowserCompat.MediaItem> stations;
-    private OnStationChange listener;
-    private int previousPlayingPosition;
+    private OnStationChange listener;;
     private EqualizerView previousEqualizer;
 
     public RadioStationsAdapter(OnStationChange listener) {
@@ -78,7 +76,7 @@ public class RadioStationsAdapter extends RecyclerView.Adapter<RadioStationsAdap
 
         void onRadioStationChanges(String url, @Nullable Bundle bundle);
 
-        String getCurrentUrl();
+        String getCurrentMediaId();
 
         boolean isPlaying();
 
@@ -87,10 +85,9 @@ public class RadioStationsAdapter extends RecyclerView.Adapter<RadioStationsAdap
     public class StationsHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         private TextView stationName;
-        private String url;
         private ImageView icon;
         private EqualizerView equalizer;
-        private Bitmap stationImage;
+        private String mediaId;
 
         public StationsHolder(View itemView) {
             super(itemView);
@@ -101,12 +98,10 @@ public class RadioStationsAdapter extends RecyclerView.Adapter<RadioStationsAdap
         }
 
         public void bind(MediaBrowserCompat.MediaItem mediaItem) {
-            stationName.setText(mediaItem.getMediaId());
-            url = mediaItem.getDescription().getMediaUri().toString();
-            stationImage = mediaItem.getDescription().getIconBitmap();
-            icon.setImageBitmap(stationImage);
-            String url = mediaItem.getDescription().getMediaUri().toString();
-            if (TextUtils.equals(url, listener.getCurrentUrl()) && listener.isPlaying()) {
+            stationName.setText(mediaItem.getDescription().getTitle());
+            mediaId = mediaItem.getDescription().getMediaId();
+            icon.setImageBitmap(RadioLibrary.getBitmapById(mediaId));
+            if (TextUtils.equals(mediaId, listener.getCurrentMediaId()) && listener.isPlaying()) {
                 equalizer.setVisibility(View.VISIBLE);
                 equalizer.animateBars();
                 previousEqualizer = equalizer;
@@ -118,10 +113,7 @@ public class RadioStationsAdapter extends RecyclerView.Adapter<RadioStationsAdap
 
         @Override
         public void onClick(View v) {
-            Bundle bundle = new Bundle();
-            bundle.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, stationName.getText().toString());
-//            bundle.putParcelable(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, stationImage);
-            listener.onRadioStationChanges(url, bundle);
+            listener.onRadioStationChanges(mediaId,null);
             equalizer.setVisibility(View.VISIBLE);
             equalizer.animateBars();
                 if (previousEqualizer!= null && previousEqualizer!= equalizer){

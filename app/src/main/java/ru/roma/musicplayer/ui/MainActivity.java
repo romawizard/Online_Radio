@@ -23,23 +23,17 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import jp.wasabeef.recyclerview.animators.SlideInDownAnimator;
-import jp.wasabeef.recyclerview.animators.SlideInLeftAnimator;
 import jp.wasabeef.recyclerview.animators.SlideInRightAnimator;
 import ru.roma.musicplayer.service.MediaPlayerService;
 import ru.roma.musicplayer.R;
 import ru.roma.musicplayer.ui.adaptaer.DiffUtilPlayList;
 import ru.roma.musicplayer.ui.adaptaer.PlayListAdapter;
-
-import static ru.roma.musicplayer.service.player.ExoPlayerImpl.ARTIST;
-import static ru.roma.musicplayer.service.player.ExoPlayerImpl.TITLE;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -82,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
         actionBar.setHomeAsUpIndicator(R.drawable.menu);
 
         SharedPreferences sharedPreferences = getSharedPreferences(getString(R.string.app_name), MODE_PRIVATE);
-        String title = sharedPreferences.getString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, getString(R.string.comedy_radio_name));
+        String title = sharedPreferences.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, getString(R.string.comedy_radio_name));
         actionBar.setTitle(title);
     }
 
@@ -101,16 +95,14 @@ public class MainActivity extends AppCompatActivity {
         MediaControllerCompat mediaController = MediaControllerCompat.getMediaController(MainActivity.this);
         mediaController.registerCallback(mediaControllerCallBack);
 
-        Bundle bundle = mediaController.getExtras();
-        if (bundle != null) {
-            String title = bundle.getString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE);
-            getSupportActionBar().setTitle(title);
-        }
+        String stationName = mediaController.getMetadata().getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID);
+        Log.d(TAG, "buildTransportControls() mediaId = "+ stationName );
+        getSupportActionBar().setTitle(stationName);
     }
 
     private void showMetadata(MediaMetadataCompat metadata) {
-        artist.setText(metadata.getString(ARTIST));
-        title.setText(metadata.getString(TITLE));
+        artist.setText(metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST));
+        title.setText(metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE));
     }
 
     @Override

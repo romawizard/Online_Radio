@@ -16,7 +16,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaBrowserServiceCompat;
-import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -45,8 +44,6 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
     private IntentFilter intentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
     private BecomingNoisyReceiver noisyReceiver = new BecomingNoisyReceiver();
     private MediaNotificationManager notificationManager;
-    private String url;
-    private String currentStationName;
     private String currentId;
     private boolean isStarted = false;
     private boolean isReceiverRegistered = false;
@@ -55,14 +52,16 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
     public void onCreate() {
         Log.d(TAG, "onCreate " + this);
         super.onCreate();
-        SharedPreferences preferences = getSharedPreferences(getString(R.string.app_name), MODE_PRIVATE);
-        url = preferences.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, getString(R.string.comedy_radio));
-        player = new ExoPlayerImpl(url, new PlayerListener());
-        afChangeListener = new FocusChangeListener();
-//        startMediaPlayerService();
+        initPlayer();
         initMediaSession();
         notificationManager = new MediaNotificationManager();
+        afChangeListener = new FocusChangeListener();
+    }
 
+    private void initPlayer() {
+        SharedPreferences preferences = getSharedPreferences(getString(R.string.app_name), MODE_PRIVATE);
+        currentId = preferences.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, getString(R.string.comedy_radio_name));
+        player = new ExoPlayerImpl(currentId, new PlayerListener());
     }
 
     private void initMediaSession() {
@@ -85,11 +84,11 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
         setSessionToken(mediaSession.getSessionToken());
 
         MediaMetadataCompat metadata = new MediaMetadataCompat.Builder()
-                .putString(ExoPlayerImpl.TITLE, "")
-                .putString(ExoPlayerImpl.ARTIST, "")
+                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID,currentId)
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "")
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "")
                 .build();
         mediaSession.setMetadata(metadata);
-
     }
 
     private PendingIntent createReceiver() {
@@ -107,7 +106,6 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
         return PendingIntent.getActivity(this, 0, intent, 0);
     }
-
 
     @Nullable
     @Override
@@ -141,9 +139,8 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
     private void saveToSharedPreferences() {
         SharedPreferences preferences = getSharedPreferences(getString(R.string.app_name), MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
-        editor.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, url);
-        if (!TextUtils.isEmpty(currentStationName)) {
-            editor.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, currentStationName);
+        if (!TextUtils.isEmpty(currentId)) {
+            editor.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, currentId);
         }
         editor.apply();
     }
@@ -170,7 +167,7 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
         }
         return super.toString() + '\'' +
                 "MediaPlayerService{" +
-                "url='" + url + '\'' +
+                "id='" + currentId + '\'' +
                 ", isStarted=" + isStarted +
                 ", isReceiverRegistered=" + isReceiverRegistered +
                 ", mediaSession isAlive= " + isAlive +
@@ -182,18 +179,12 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
 
         @Override
         public void onPlayFromMediaId(String mediaId, Bundle extras) {
-            if (TextUtils.equals(url, mediaId) && player.isPlaying()) {
+            if (TextUtils.equals(currentId, mediaId) && player.isPlaying()) {
                 return;
             }
-            url = mediaId;
-            try {
-                currentStationName = extras.getString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, "");
-            } catch (RuntimeException e) {
-                e.printStackTrace();
-            }
+            currentId = mediaId;
             saveToSharedPreferences();
-            player.setUrlStation(mediaId);
-            mediaSession.setExtras(extras);
+            player.prepare(mediaId);
             onPlay();
         }
 

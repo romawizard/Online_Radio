@@ -22,6 +22,7 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.List;
@@ -31,11 +32,9 @@ import butterknife.ButterKnife;
 import jp.wasabeef.recyclerview.animators.SlideInRightAnimator;
 import ru.roma.musicplayer.R;
 import ru.roma.musicplayer.service.MediaPlayerService;
+import ru.roma.musicplayer.service.library.RadioLibrary;
 import ru.roma.musicplayer.ui.adaptaer.DiffUtilStations;
 import ru.roma.musicplayer.ui.adaptaer.RadioStationsAdapter;
-
-import static ru.roma.musicplayer.service.player.ExoPlayerImpl.ARTIST;
-import static ru.roma.musicplayer.service.player.ExoPlayerImpl.TITLE;
 
 public class ListOfRadioStationActivity extends AppCompatActivity implements RadioStationsAdapter.OnStationChange {
 
@@ -52,7 +51,8 @@ public class ListOfRadioStationActivity extends AppCompatActivity implements Rad
     Button playPausePlayingLayout;
     @BindView(R.id.playingLayout)
     ConstraintLayout playingLayout;
-    ;
+    @BindView(R.id.stationIcon)
+    ImageView stationIcon;
     private MediaBrowserCompat mediaBrowser;
     private RadioStationsAdapter adapter;
     private ControllerCallback controllerCallback;
@@ -75,7 +75,7 @@ public class ListOfRadioStationActivity extends AppCompatActivity implements Rad
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(ListOfRadioStationActivity.this, MainActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
             }
         });
@@ -115,15 +115,15 @@ public class ListOfRadioStationActivity extends AppCompatActivity implements Rad
     }
 
     @Override
-    public void onRadioStationChanges(String url, Bundle bundle) {
+    public void onRadioStationChanges(String mediaId, Bundle bundle) {
         MediaControllerCompat.getMediaController(ListOfRadioStationActivity.this).getTransportControls()
-                .playFromMediaId(url, bundle);
+                .playFromMediaId(mediaId, bundle);
     }
 
     @Override
-    public String getCurrentUrl() {
-        String result = getSharedPreferences(getString(R.string.app_name), MODE_PRIVATE)
-                .getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, "");
+    public String getCurrentMediaId() {
+        String result = MediaControllerCompat.getMediaController(ListOfRadioStationActivity.this)
+                .getMetadata().getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID);
         return result;
     }
 
@@ -156,8 +156,9 @@ public class ListOfRadioStationActivity extends AppCompatActivity implements Rad
     }
 
     private void showMetadata(MediaMetadataCompat metadata) {
-        artistInPlayingLayout.setText(metadata.getString(ARTIST));
-        titleInPlayingLayout.setText(metadata.getString(TITLE));
+        artistInPlayingLayout.setText(metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST));
+        titleInPlayingLayout.setText(metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE));
+        stationIcon.setImageBitmap(RadioLibrary.getBitmapById(metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)));
     }
 
     private void showPlayingLayout() {

@@ -20,6 +20,7 @@ import java.util.Date;
 import java.util.List;
 
 import ru.roma.musicplayer.R;
+import ru.roma.musicplayer.service.library.RadioLibrary;
 
 import static ru.roma.musicplayer.service.player.ExoPlayerImpl.TIME;
 
@@ -62,6 +63,7 @@ public class PlayListAdapter extends RecyclerView.Adapter<PlayListAdapter.MusicV
         private TextView title;
         private TextView artist;
         private TextView time;
+        private ImageView icon;
         private String currentTitle, currentArtist;
 
         public MusicViewHolder(View itemView) {
@@ -70,6 +72,7 @@ public class PlayListAdapter extends RecyclerView.Adapter<PlayListAdapter.MusicV
             title = itemView.findViewById(R.id.playListTitle);
             artist = itemView.findViewById(R.id.playListArtist);
             time = itemView.findViewById(R.id.time);
+            icon = itemView.findViewById(R.id.playListIcon);
         }
 
         public void bind(MediaSessionCompat.QueueItem musicItem) {
@@ -77,6 +80,7 @@ public class PlayListAdapter extends RecyclerView.Adapter<PlayListAdapter.MusicV
             currentTitle = musicItem.getDescription().getTitle().toString();
             title.setText(currentTitle);
             artist.setText(currentArtist);
+            icon.setImageBitmap(RadioLibrary.getBitmapById(musicItem.getDescription().getMediaId()));
             String timestamp = new SimpleDateFormat("HH:mm").format(new Date(musicItem.getDescription().getExtras().getLong(TIME)));
             time.setText(timestamp);
         }
