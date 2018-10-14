@@ -24,7 +24,7 @@ public class RadioStationsAdapter extends RecyclerView.Adapter<RadioStationsAdap
 
     public static final String TAG = RadioStationsAdapter.class.getCanonicalName();
     private List<MediaBrowserCompat.MediaItem> stations;
-    private OnStationChange listener;;
+    private OnStationChange listener;
     private EqualizerView previousEqualizer;
 
     public RadioStationsAdapter(OnStationChange listener) {

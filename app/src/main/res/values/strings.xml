@@ -6,6 +6,8 @@
     <string name="PlayList">PlayList</string>
     <string name="copied">Copied to clipboard</string>
     <string name="stations">Radio Stations</string>
+    <string name="popular">Popular Radio Stations</string>
+
 
     <string name="comedy_radio">http://ic2.101.ru:8000/v11_1</string>
     <string name="record">http://air.radiorecord.ru:8101/rr_128</string>
@@ -13,6 +15,7 @@
     <string name="record_rock">http://air.radiorecord.ru:8102/rock_128</string>
     <string name="record_deep">http://air.radiorecord.ru:8102/deep_128</string>
     <string name="record_ps">http://air.radiorecord.ru:8102/ps_128</string>
+    <string name="record_tm">http://air.radiorecord.ru:8102/tm_128</string>
     <string name="kiss_ua">http://online-kissfm.tavrmedia.ua/KissFM</string>
     <string name="kiss_deep">http://online-kissfm.tavrmedia.ua/KissFM_Deep</string>
     <string name="kiss_digital">http://online-kissfm.tavrmedia.ua/KissFM_Digital</string>
@@ -30,6 +33,7 @@
     <string name="record_rock_name">Record Rock</string>
     <string name="record_deep_name">Record Deep</string>
     <string name="record_ps_name">Record Pirate Station</string>
+    <string name="record_tm_name">Record Trancemission</string>
     <string name="kiss_ua_name">Kiss Fm</string>
     <string name="kiss_deep_name">Kiss Fm Deep</string>
     <string name="kiss_digital_name">Kiss Fm Digital</string>
@@ -49,6 +53,7 @@
         <item>@string/record_rock</item>
         <item>@string/record_deep</item>
         <item>@string/record_ps</item>
+        <item>@string/record_tm</item>
         <item>@string/kiss_ua</item>
         <item>@string/kiss_deep</item>
         <item>@string/kiss_digital</item>
@@ -68,6 +73,7 @@
         <item>@string/record_rock_name</item>
         <item>@string/record_deep_name</item>
         <item>@string/record_ps_name</item>
+        <item>@string/record_tm_name</item>
         <item>@string/kiss_ua_name</item>
         <item>@string/kiss_deep_name</item>
         <item>@string/kiss_digital_name</item>

@@ -28,7 +28,11 @@ public class PlayListAdapter extends RecyclerView.Adapter<PlayListAdapter.MusicV
 
     private List<MediaSessionCompat.QueueItem> playList;
     private final String TAG = PlayListAdapter.class.getCanonicalName();
+    private PlayListListener listListener;
 
+    public PlayListAdapter(PlayListListener listListener) {
+        this.listListener = listListener;
+    }
 
     @NonNull
     @Override
@@ -56,9 +60,12 @@ public class PlayListAdapter extends RecyclerView.Adapter<PlayListAdapter.MusicV
         return playList;
     }
 
+    public interface PlayListListener{
 
+        void onChooseTrack(String trackName);
+    }
 
-    public class  MusicViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class  MusicViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
 
         private TextView title;
         private TextView artist;
@@ -69,6 +76,7 @@ public class PlayListAdapter extends RecyclerView.Adapter<PlayListAdapter.MusicV
         public MusicViewHolder(View itemView) {
             super(itemView);
             itemView.setOnClickListener(this);
+            itemView.setOnLongClickListener(this);
             title = itemView.findViewById(R.id.playListTitle);
             artist = itemView.findViewById(R.id.playListArtist);
             time = itemView.findViewById(R.id.time);
@@ -92,6 +100,12 @@ public class PlayListAdapter extends RecyclerView.Adapter<PlayListAdapter.MusicV
             clipboard.setPrimaryClip(clip);
 
             Toast.makeText(v.getContext(),R.string.copied,Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+            listListener.onChooseTrack(currentArtist + " " + currentTitle);
+            return true;
         }
     }
 }

@@ -4,6 +4,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.RatingCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.text.TextUtils;
 import android.util.Log;
@@ -165,13 +166,13 @@ public class ExoPlayerImpl extends AbstractPlayer {
                     break;
                 case Player.STATE_ENDED:
                     changeStateToStop();
+                    break;
             }
         }
 
         @Override
         public void onPlayerError(ExoPlaybackException error) {
             if (player != null) {
-                player.stop();
                 player.release();
                 player = null;
             }
@@ -188,7 +189,8 @@ public class ExoPlayerImpl extends AbstractPlayer {
                     sendError(error.getUnexpectedException());
                     break;
                 default:
-                    sendError(error);
+                    error.printStackTrace();
+                    sendError(new RuntimeException("player Error"));
             }
         }
     }

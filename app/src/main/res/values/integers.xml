@@ -7,6 +7,7 @@
         <item>@drawable/radio_record</item>
         <item>@drawable/radio_record</item>
         <item>@drawable/pirate_station</item>
+        <item>@drawable/trancemission</item>
         <item>@drawable/kiss_fm</item>
         <item>@drawable/kiss_fm</item>
         <item>@drawable/kiss_fm</item>
@@ -18,4 +19,5 @@
         <item>@drawable/one_eight_one_fm</item>
         <item>@drawable/one_eight_one_fm</item>
     </integer-array>
+
 </resources>

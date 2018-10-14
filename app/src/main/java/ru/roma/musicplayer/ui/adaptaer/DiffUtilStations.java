@@ -10,10 +10,13 @@ public class DiffUtilStations extends DiffUtil.Callback {
 
     private List<MediaBrowserCompat.MediaItem> oldList;
     private List<MediaBrowserCompat.MediaItem> newList;
+    private String currentMediaId;
 
-    public DiffUtilStations(List<MediaBrowserCompat.MediaItem> oldList, List<MediaBrowserCompat.MediaItem> newList) {
+    public DiffUtilStations(List<MediaBrowserCompat.MediaItem> oldList, List<MediaBrowserCompat.MediaItem> newList,String currentMediaId
+    ) {
         this.oldList = oldList;
         this.newList = newList;
+        this.currentMediaId = currentMediaId;
     }
 
     @Override
@@ -36,6 +39,10 @@ public class DiffUtilStations extends DiffUtil.Callback {
 
     @Override
     public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
-        return false;
+        String newId = newList.get(newItemPosition).getMediaId();
+        if (newId == currentMediaId){
+            return false;
+        }
+        return true;
     }
 }

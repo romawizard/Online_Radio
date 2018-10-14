@@ -1,10 +1,12 @@
 package ru.roma.musicplayer.ui;
 
+import android.arch.lifecycle.Observer;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
@@ -30,9 +32,12 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import jp.wasabeef.recyclerview.animators.SlideInRightAnimator;
+import ru.roma.musicplayer.MediaPlayerApplication;
 import ru.roma.musicplayer.R;
+import ru.roma.musicplayer.data.entity.RadioStation;
 import ru.roma.musicplayer.service.MediaPlayerService;
 import ru.roma.musicplayer.service.library.RadioLibrary;
+import ru.roma.musicplayer.service.library.RadioMapper;
 import ru.roma.musicplayer.ui.adaptaer.DiffUtilStations;
 import ru.roma.musicplayer.ui.adaptaer.RadioStationsAdapter;
 
@@ -134,25 +139,28 @@ public class ListOfRadioStationActivity extends AppCompatActivity implements Rad
         return state.getState() == PlaybackStateCompat.STATE_PLAYING;
     }
 
-    private void showListOfRadioStation() {
-        Log.d(TAG, "showListOfRadioStation");
-        String root = mediaBrowser.getRoot();
-        mediaBrowser.subscribe(root, new MediaBrowserCompat.SubscriptionCallback() {
-            @Override
-            public void onChildrenLoaded(@NonNull String parentId, @NonNull List<MediaBrowserCompat.MediaItem> children) {
-                DiffUtilStations diffUtilStations = new DiffUtilStations(adapter.getStations(), children);
+    private void showListOfRadioStation(List<MediaBrowserCompat.MediaItem> mediaItems) {
+                DiffUtilStations diffUtilStations = new DiffUtilStations(adapter.getStations(),mediaItems,getCurrentMediaId());
                 DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(diffUtilStations);
-                adapter.setStations(children);
+                adapter.setStations(mediaItems);
                 diffResult.dispatchUpdatesTo(adapter);
             }
-        });
-    }
 
     private void showContent() {
-        showListOfRadioStation();
+        subscribeToLiveData();
         if (isPlaying()) {
             showPlayingLayout();
         }
+    }
+
+    private void subscribeToLiveData() {
+        MediaPlayerApplication.getInstance().getManager().getLiveData()
+                .observe(ListOfRadioStationActivity.this, new Observer<List<RadioStation>>() {
+                    @Override
+                    public void onChanged(@Nullable List<RadioStation> radioStations) {
+                        showListOfRadioStation(RadioMapper.mapToMediaItem(ListOfRadioStationActivity.this,radioStations));
+                    }
+                });
     }
 
     private void showMetadata(MediaMetadataCompat metadata) {

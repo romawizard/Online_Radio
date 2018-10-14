@@ -7,8 +7,10 @@ import android.media.browse.MediaBrowser;
 import android.net.Uri;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
+import android.support.v4.media.MediaMetadataCompat;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,10 +18,13 @@ import java.util.TreeMap;
 
 import ru.roma.musicplayer.MediaPlayerApplication;
 import ru.roma.musicplayer.R;
+import ru.roma.musicplayer.ui.MainActivity;
 
 public class RadioLibrary {
 
     private static final Map<String, MediaBrowserCompat.MediaItem> radioStations = new LinkedHashMap<>();
+    private static final Map<String,Float> ratings = new HashMap<>();
+
 
     static {
         fillRadioStations();
@@ -37,14 +42,17 @@ public class RadioLibrary {
         String[] URLs = MediaPlayerApplication.getInstance().getResources().getStringArray(R.array.stations_url);
         String[] names = MediaPlayerApplication.getInstance().getResources().getStringArray(R.array.stations_name);
 
+
         for (int i = 0, n = names.length; i < n; i++) {
             MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
+                    .setIconUri(Uri.parse(String.valueOf(ids[i])))
                     .setMediaId(names[i])
                     .setTitle(names[i])
                     .setMediaUri(Uri.parse(URLs[i]))
                     .setIconBitmap(BitmapFactory.decodeResource(MediaPlayerApplication.getInstance().getResources(),ids[i]))
                     .build();
             radioStations.put(names[i], new MediaBrowserCompat.MediaItem(description, MediaBrowser.MediaItem.FLAG_PLAYABLE));
+
         }
     }
 
@@ -62,4 +70,5 @@ public class RadioLibrary {
     public static String getUrlById(String id){
         return radioStations.get(id).getDescription().getMediaUri().toString();
     }
+
 }
