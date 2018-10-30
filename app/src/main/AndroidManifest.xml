@@ -40,6 +40,9 @@
         <activity android:name=".ui.ListOfRadioStationActivity"
             android:parentActivityName=".ui.MainActivity">
         </activity>
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="c5a7e1889af99a00f44c8e8d794fd8986cfaf356" />
     </application>
 
 </manifest>

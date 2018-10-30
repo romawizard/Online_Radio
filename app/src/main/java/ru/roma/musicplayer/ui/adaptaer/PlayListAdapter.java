@@ -15,12 +15,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.squareup.picasso.Picasso;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
 import ru.roma.musicplayer.R;
-import ru.roma.musicplayer.service.library.RadioLibrary;
 
 import static ru.roma.musicplayer.service.player.ExoPlayerImpl.TIME;
 
@@ -60,10 +61,12 @@ public class PlayListAdapter extends RecyclerView.Adapter<PlayListAdapter.MusicV
         return playList;
     }
 
+
     public interface PlayListListener{
 
         void onChooseTrack(String trackName);
     }
+
 
     public class  MusicViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
 
@@ -84,11 +87,13 @@ public class PlayListAdapter extends RecyclerView.Adapter<PlayListAdapter.MusicV
         }
 
         public void bind(MediaSessionCompat.QueueItem musicItem) {
+            Picasso.get().load(musicItem.getDescription().getIconUri().toString())
+                    .resize(150,0)
+                    .into(icon);
             currentArtist = musicItem.getDescription().getSubtitle().toString();
             currentTitle = musicItem.getDescription().getTitle().toString();
             title.setText(currentTitle);
             artist.setText(currentArtist);
-            icon.setImageBitmap(RadioLibrary.getBitmapById(musicItem.getDescription().getMediaId()));
             String timestamp = new SimpleDateFormat("HH:mm").format(new Date(musicItem.getDescription().getExtras().getLong(TIME)));
             time.setText(timestamp);
         }

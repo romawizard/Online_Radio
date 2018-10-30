@@ -7,6 +7,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationCompat;
@@ -15,10 +16,9 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.widget.RemoteViews;
 
 import ru.roma.musicplayer.R;
-import ru.roma.musicplayer.service.library.RadioLibrary;
-import ru.roma.musicplayer.service.player.ExoPlayerImpl;
 import ru.roma.musicplayer.ui.MainActivity;
 
 public class MediaNotificationProvider {
@@ -62,8 +62,7 @@ public class MediaNotificationProvider {
         }
     }
 
-    public Notification getNotification(PlaybackStateCompat state, MediaMetadataCompat metadata
-    ) {
+    public Notification getNotification(PlaybackStateCompat state, MediaMetadataCompat metadata, Bitmap image) {
         String title = metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE);
         String artist = metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST);
 
@@ -81,10 +80,10 @@ public class MediaNotificationProvider {
 
                 .addAction(action)
 
-                .setLargeIcon(RadioLibrary.getBitmapById(metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)))
+                .setLargeIcon(image)
                 .setDeleteIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_STOP))
                 .setSmallIcon(R.drawable.radio_icon)
-                .setColor(ContextCompat.getColor(context, R.color.colorButton))
+                .setColor(ContextCompat.getColor(context, R.color.colorBlue))
 
                 .setStyle(style)
 
@@ -116,7 +115,7 @@ public class MediaNotificationProvider {
 
                 .setDeleteIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(context, PlaybackStateCompat.ACTION_STOP))
                 .setSmallIcon(R.drawable.radio_icon)
-                .setColor(ContextCompat.getColor(context, R.color.colorButton))
+                .setColor(ContextCompat.getColor(context, R.color.colorBlue))
 
                 .setStyle(emptyStyle)
 
@@ -132,7 +131,7 @@ public class MediaNotificationProvider {
         NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager.getNotificationChannel(CHANNEL_ID) == null) {
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW);
-            channel.setLightColor(R.color.colorButton);
+            channel.setLightColor(R.color.colorBlue);
             channel.setLockscreenVisibility(NotificationCompat.VISIBILITY_PUBLIC);
             manager.createNotificationChannel(channel);
         }
@@ -144,10 +143,8 @@ public class MediaNotificationProvider {
         return PendingIntent.getActivity(context, 0, intent, 0);
     }
 
-    public void destroy() {
+    public void release() {
         context = null;
     }
-
-
 }
 

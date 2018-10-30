@@ -10,6 +10,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
+
 import java.util.List;
 
 import butterknife.BindView;
@@ -60,6 +62,7 @@ public class RadioStationRatingAdapter extends RecyclerView.Adapter<RadioStation
         TextView stationName;
         String mediaId;
 
+
         public RatingHolder(View itemView) {
             super(itemView);
             itemView.setOnClickListener(this);
@@ -67,7 +70,9 @@ public class RadioStationRatingAdapter extends RecyclerView.Adapter<RadioStation
         }
 
         public void bind(MediaBrowserCompat.MediaItem mediaItem) {
-            iconRating.setImageBitmap(mediaItem.getDescription().getIconBitmap());
+            Picasso.get().load(mediaItem.getDescription().getIconUri())
+                    .resize(150,0)
+                    .into(iconRating);
             stationName.setText(mediaItem.getDescription().getTitle());
             mediaId = mediaItem.getDescription().getMediaId();
         }
@@ -77,6 +82,7 @@ public class RadioStationRatingAdapter extends RecyclerView.Adapter<RadioStation
             listener.onStationChanges(mediaId);
         }
     }
+
 
     public interface OnChangeRadioStation{
 

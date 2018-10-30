@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,7 +27,8 @@ public class RadioMapper {
             String title = description.getTitle().toString();
             String uri = description.getMediaUri().toString();
             float rating =1f;
-            int icon = Integer.parseInt(mediaItem.getDescription().getIconUri().toString());
+            String icon = description.getIconUri().toString();
+            Log.d("RAdioMapper", "icon path = " + icon);
 
             RadioStation station = new RadioStation(mediaId,title,uri,rating,icon);
             radioStations.add(station);
@@ -40,11 +42,11 @@ public class RadioMapper {
             Bundle bundle = new Bundle();
             bundle.putFloat(MediaMetadataCompat.METADATA_KEY_RATING,station.getRating());
             MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
-                    .setIconUri(Uri.parse(String.valueOf(station.getIcon())))
+                    .setIconUri(Uri.parse(String.valueOf(station.getImageUri())))
                     .setMediaId(station.getMediaId())
                     .setTitle(station.getTitle())
-                    .setMediaUri(Uri.parse(station.getMediaUri()))
-                    .setIconBitmap(BitmapFactory.decodeResource(context.getResources(),station.getIcon()))
+                    .setMediaUri(Uri.parse(station.getStationUrl()))
+//                    .setIconBitmap(BitmapFactory.decodeResource(context.getResources(),station.getImageUri()))
                     .setExtras(bundle)
                     .build();
             mediaItems.add(new MediaBrowserCompat.MediaItem(description, MediaBrowser.MediaItem.FLAG_PLAYABLE));

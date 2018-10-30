@@ -27,6 +27,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
+
 import java.util.List;
 
 import butterknife.BindView;
@@ -34,12 +36,13 @@ import butterknife.ButterKnife;
 import jp.wasabeef.recyclerview.animators.SlideInRightAnimator;
 import ru.roma.musicplayer.MediaPlayerApplication;
 import ru.roma.musicplayer.R;
+import ru.roma.musicplayer.data.RadioStationsManager;
 import ru.roma.musicplayer.data.entity.RadioStation;
 import ru.roma.musicplayer.service.MediaPlayerService;
-import ru.roma.musicplayer.service.library.RadioLibrary;
 import ru.roma.musicplayer.service.library.RadioMapper;
 import ru.roma.musicplayer.ui.adaptaer.DiffUtilStations;
 import ru.roma.musicplayer.ui.adaptaer.RadioStationsAdapter;
+
 
 public class ListOfRadioStationActivity extends AppCompatActivity implements RadioStationsAdapter.OnStationChange {
 
@@ -61,63 +64,8 @@ public class ListOfRadioStationActivity extends AppCompatActivity implements Rad
     private MediaBrowserCompat mediaBrowser;
     private RadioStationsAdapter adapter;
     private ControllerCallback controllerCallback;
+    private RadioStationsManager manager;
     private ActionBar actionBar;
-
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_list_of_radio_station);
-        ButterKnife.bind(this);
-
-        mediaBrowser = new MediaBrowserCompat(this, new ComponentName(this, MediaPlayerService.class)
-                , new ConnectionCallback(), null);
-
-        controllerCallback = new ControllerCallback();
-        initializeRecycleList();
-        initActionBar();
-        playingLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(ListOfRadioStationActivity.this, MainActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-            }
-        });
-    }
-
-    private void initActionBar() {
-        setSupportActionBar(listToolBar);
-        actionBar = getSupportActionBar();
-        actionBar.setTitle(getString(R.string.stations));
-        actionBar.setDisplayHomeAsUpEnabled(true);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        mediaBrowser.connect();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (MediaControllerCompat.getMediaController(ListOfRadioStationActivity.this) != null) {
-            MediaControllerCompat.getMediaController(ListOfRadioStationActivity.this).unregisterCallback(controllerCallback);
-        }
-        mediaBrowser.disconnect();
-    }
-
-    private void initializeRecycleList() {
-        final LinearLayoutManager lm = new LinearLayoutManager(this);
-        lm.setOrientation(LinearLayoutManager.VERTICAL);
-
-        adapter = new RadioStationsAdapter(this);
-        listStations.setLayoutManager(lm);
-        listStations.setAdapter(adapter);
-        listStations.setItemAnimator(new SlideInRightAnimator());
-
-    }
 
     @Override
     public void onRadioStationChanges(String mediaId, Bundle bundle) {
@@ -139,6 +87,45 @@ public class ListOfRadioStationActivity extends AppCompatActivity implements Rad
         return state.getState() == PlaybackStateCompat.STATE_PLAYING;
     }
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_list_of_radio_station);
+        ButterKnife.bind(this);
+
+        manager = MediaPlayerApplication.getInstance().getManager();
+
+        mediaBrowser = new MediaBrowserCompat(this, new ComponentName(this, MediaPlayerService.class)
+                , new ConnectionCallback(), null);
+
+        controllerCallback = new ControllerCallback();
+        initializeRecycleList();
+        initActionBar();
+        playingLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ListOfRadioStationActivity.this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+            }
+        });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mediaBrowser.connect();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (MediaControllerCompat.getMediaController(ListOfRadioStationActivity.this) != null) {
+            MediaControllerCompat.getMediaController(ListOfRadioStationActivity.this).unregisterCallback(controllerCallback);
+        }
+        mediaBrowser.disconnect();
+    }
+
     private void showListOfRadioStation(List<MediaBrowserCompat.MediaItem> mediaItems) {
                 DiffUtilStations diffUtilStations = new DiffUtilStations(adapter.getStations(),mediaItems,getCurrentMediaId());
                 DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(diffUtilStations);
@@ -151,6 +138,24 @@ public class ListOfRadioStationActivity extends AppCompatActivity implements Rad
         if (isPlaying()) {
             showPlayingLayout();
         }
+    }
+
+    private void initializeRecycleList() {
+        final LinearLayoutManager lm = new LinearLayoutManager(this);
+        lm.setOrientation(LinearLayoutManager.VERTICAL);
+
+        adapter = new RadioStationsAdapter(this);
+        listStations.setLayoutManager(lm);
+        listStations.setAdapter(adapter);
+        listStations.setItemAnimator(new SlideInRightAnimator());
+
+    }
+
+    private void initActionBar() {
+        setSupportActionBar(listToolBar);
+        actionBar = getSupportActionBar();
+        actionBar.setTitle(getString(R.string.stations));
+        actionBar.setDisplayHomeAsUpEnabled(true);
     }
 
     private void subscribeToLiveData() {
@@ -166,7 +171,10 @@ public class ListOfRadioStationActivity extends AppCompatActivity implements Rad
     private void showMetadata(MediaMetadataCompat metadata) {
         artistInPlayingLayout.setText(metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST));
         titleInPlayingLayout.setText(metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE));
-        stationIcon.setImageBitmap(RadioLibrary.getBitmapById(metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)));
+        Picasso.get()
+                .load(manager.getImageUri(getCurrentMediaId()))
+                .resize(150,0)
+                .into(stationIcon);
     }
 
     private void showPlayingLayout() {
@@ -197,6 +205,7 @@ public class ListOfRadioStationActivity extends AppCompatActivity implements Rad
             playingLayout.setVisibility(View.VISIBLE);
         }
     }
+
 
     private class ConnectionCallback extends MediaBrowserCompat.ConnectionCallback {
         @Override

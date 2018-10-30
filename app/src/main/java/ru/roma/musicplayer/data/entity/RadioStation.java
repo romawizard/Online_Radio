@@ -2,7 +2,6 @@ package ru.roma.musicplayer.data.entity;
 
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
-import android.nfc.Tag;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -17,18 +16,18 @@ public class RadioStation {
 
     private String title;
 
-    private String mediaUri;
+    private String stationUrl;
 
     private float rating;
 
-    private int icon;
+    private String imageUri;
 
-    public RadioStation(String mediaId, String title, String mediaUri, float rating, int icon) {
+    public RadioStation(String mediaId, String title, String stationUrl, float rating, String imageUri) {
         this.mediaId = mediaId;
         this.title = title;
-        this.mediaUri = mediaUri;
+        this.stationUrl = stationUrl;
         this.rating = rating;
-        this.icon = icon;
+        this.imageUri = imageUri;
     }
 
     public String getMediaId() {
@@ -47,12 +46,12 @@ public class RadioStation {
         this.title = title;
     }
 
-    public String getMediaUri() {
-        return mediaUri;
+    public String getStationUrl() {
+        return stationUrl;
     }
 
-    public void setMediaUri(String mediaUri) {
-        this.mediaUri = mediaUri;
+    public void setStationUrl(String stationUrl) {
+        this.stationUrl = stationUrl;
     }
 
     public float getRating() {
@@ -63,12 +62,12 @@ public class RadioStation {
         this.rating = rating;
     }
 
-    public int getIcon() {
-        return icon;
+    public String getImageUri() {
+        return imageUri;
     }
 
-    public void setIcon(int icon) {
-        this.icon = icon;
+    public void setImageUri(String imageUri) {
+        this.imageUri = imageUri;
     }
 
     public void increaseRating(){
@@ -80,9 +79,9 @@ public class RadioStation {
         return "RadioStation{" +
                 "mediaId='" + mediaId + '\'' +
                 ", title='" + title + '\'' +
-                ", mediaUri='" + mediaUri + '\'' +
+                ", stationUrl='" + stationUrl + '\'' +
                 ", rating=" + rating +
-                ", icon=" + icon +
+                ", icon=" + imageUri +
                 '}';
     }
 

@@ -2,8 +2,11 @@ package ru.roma.musicplayer.data;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
+import android.net.Uri;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -16,10 +19,11 @@ public class RadioStationsManager {
 
     private RadioStationDao radioStationDao;
     private ExecutorService executor = Executors.newSingleThreadExecutor();
-    private List<RadioStation> radioStations;
+    private Map<String, RadioStation> radioStations;
 
     public RadioStationsManager(RadioStationDao radioStationDao) {
         this.radioStationDao = radioStationDao;
+        radioStations = new LinkedHashMap<>();
         loadData();
     }
 
@@ -27,13 +31,35 @@ public class RadioStationsManager {
         return radioStationDao.getLiveDataStationSortedByRating();
     }
 
-    public void increaseRatingByTime(final String mediaId){
+    public void increaseRatingByTime(final RadioStation radioStation, final long diff) {
         executor.execute(new Runnable() {
             @Override
             public void run() {
-               RadioStation station = radioStationDao.getStationByMediaId(mediaId);
-               station.increaseRating();
-               radioStationDao.insert(station);
+                radioStation.increaseRating(diff);
+                radioStationDao.insert(radioStation);
+            }
+        });
+
+    }
+
+    public List<RadioStation> getRadioStations() {
+        return (List<RadioStation>) radioStations.values();
+    }
+
+    public String getImageUri(String mediaId) {
+       return radioStations.get(mediaId).getImageUri();
+    }
+
+    public RadioStation getRadioStationByMediaId(String mediaId) {
+       return radioStations.get(mediaId);
+    }
+
+    public void increaseRating(final RadioStation radioStation) {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                radioStation.increaseRating();
+                radioStationDao.insert(radioStation);
             }
         });
     }
@@ -42,24 +68,15 @@ public class RadioStationsManager {
         executor.execute(new Runnable() {
             @Override
             public void run() {
-                radioStations = radioStationDao.getAllStationSortedByRating();
-                          }
-        });
-    }
-
-    public void increaseRatingByTime(final String mediaId, final long diff) {
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                RadioStation station = radioStationDao.getStationByMediaId(mediaId);
-                station.increaseRating(diff);
-                radioStationDao.insert(station);
+                List<RadioStation> stations = radioStationDao.getAllStationSortedByRating();
+                for (RadioStation st: stations){
+                    radioStations.put(st.getMediaId(),st);
+                }
             }
         });
-
     }
 
-    public List<RadioStation> getRadioStations() {
-        return radioStations;
+    public void notifyDataChange() {
+        loadData();
     }
 }

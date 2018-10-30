@@ -13,11 +13,13 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
+
 import java.util.List;
 
 import es.claucookie.miniequalizerlibrary.EqualizerView;
 import ru.roma.musicplayer.R;
-import ru.roma.musicplayer.service.library.RadioLibrary;
+
 
 
 public class RadioStationsAdapter extends RecyclerView.Adapter<RadioStationsAdapter.StationsHolder> {
@@ -79,8 +81,8 @@ public class RadioStationsAdapter extends RecyclerView.Adapter<RadioStationsAdap
         String getCurrentMediaId();
 
         boolean isPlaying();
-
     }
+
 
     public class StationsHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
@@ -98,9 +100,11 @@ public class RadioStationsAdapter extends RecyclerView.Adapter<RadioStationsAdap
         }
 
         public void bind(MediaBrowserCompat.MediaItem mediaItem) {
+            Picasso.get().load(mediaItem.getDescription().getIconUri())
+                    .resize(150,0)
+                    .into(icon);
             stationName.setText(mediaItem.getDescription().getTitle());
             mediaId = mediaItem.getDescription().getMediaId();
-            icon.setImageBitmap(RadioLibrary.getBitmapById(mediaId));
             if (TextUtils.equals(mediaId, listener.getCurrentMediaId()) && listener.isPlaying()) {
                 equalizer.setVisibility(View.VISIBLE);
                 equalizer.animateBars();

@@ -4,6 +4,8 @@ import android.app.Application;
 import android.arch.persistence.room.Room;
 import android.content.SharedPreferences;
 
+import com.crashlytics.android.Crashlytics;
+import io.fabric.sdk.android.Fabric;
 import ru.roma.musicplayer.data.RadioStationsManager;
 import ru.roma.musicplayer.data.database.AppDatabase;
 import ru.roma.musicplayer.service.library.RadioLibrary;
@@ -19,6 +21,7 @@ public class MediaPlayerApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        Fabric.with(this, new Crashlytics());
         instance = this;
         database = Room.databaseBuilder(this,AppDatabase.class,getString(R.string.app_name))
                 .build();
@@ -41,7 +44,9 @@ public class MediaPlayerApplication extends Application {
             Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    database.getRadioStationDao().insert(RadioMapper.mapToRadioStation(RadioLibrary.getMediaItems()));
+                    database.getRadioStationDao()
+                            .insert(RadioMapper.mapToRadioStation(RadioLibrary.createRadioStations(getApplicationContext())));
+                    manager.notifyDataChange();
                 }
             })   ;
             thread.start();

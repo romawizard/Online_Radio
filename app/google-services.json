@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "288737939507",
+    "firebase_url": "https://online-radio-3d0d6.firebaseio.com",
+    "project_id": "online-radio-3d0d6",
+    "storage_bucket": "online-radio-3d0d6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:288737939507:android:7363216a811ff072",
+        "android_client_info": {
+          "package_name": "ru.roma.musicplayer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "288737939507-qir43r9hbunk8igvojfhmv5devqjnpnn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "ru.roma.musicplayer",
+            "certificate_hash": "cac6743e1cacccb364740eadd825be8d998656ee"
+          }
+        },
+        {
+          "client_id": "288737939507-2maa484keoecscnrojmpej5obumatsch.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDanPExMRltjgZ712IX1-qgJ73PcPKZjRs"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "288737939507-2maa484keoecscnrojmpej5obumatsch.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

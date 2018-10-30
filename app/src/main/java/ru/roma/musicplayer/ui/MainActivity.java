@@ -8,11 +8,11 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.AudioManager;
-import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.os.RemoteException;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -28,12 +28,12 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
+import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.google.android.exoplayer2.metadata.id3.UrlLinkFrame;
+import com.squareup.picasso.Picasso;
 
-import java.net.URL;
 import java.util.List;
 
 import butterknife.BindView;
@@ -41,6 +41,7 @@ import butterknife.ButterKnife;
 import jp.wasabeef.recyclerview.animators.SlideInRightAnimator;
 import ru.roma.musicplayer.MediaPlayerApplication;
 import ru.roma.musicplayer.R;
+import ru.roma.musicplayer.data.RadioStationsManager;
 import ru.roma.musicplayer.data.entity.RadioStation;
 import ru.roma.musicplayer.service.MediaPlayerService;
 import ru.roma.musicplayer.service.library.RadioMapper;
@@ -49,23 +50,29 @@ import ru.roma.musicplayer.ui.adaptaer.DiffUtilStations;
 import ru.roma.musicplayer.ui.adaptaer.PlayListAdapter;
 import ru.roma.musicplayer.ui.adaptaer.RadioStationRatingAdapter;
 
-public class MainActivity extends AppCompatActivity implements RadioStationRatingAdapter.OnChangeRadioStation,PlayListAdapter.PlayListListener {
+public class MainActivity extends AppCompatActivity implements RadioStationRatingAdapter.OnChangeRadioStation,
+        PlayListAdapter.PlayListListener {
 
     private static final String TAG = MainActivity.class.getCanonicalName();
     @BindView(R.id.play_stop)
     AppCompatButton playStop;
-    @BindView(R.id.textViewError)
-    TextView textViewError;
-    @BindView(R.id.artist)
-    TextView artist;
-    @BindView(R.id.title)
-    TextView title;
+    //    @BindView(R.id.textViewError)
+//    TextView textViewError;
+//    @BindView(R.id.artist)
+//    TextView artist;
+//    @BindView(R.id.title)
+//    TextView title;
+
+    @BindView(R.id.stationByRating)
+    RecyclerView stationsByRating;
+    @BindView(R.id.collapsingToolBar)
+    CollapsingToolbarLayout collapsingToolBar;
     @BindView(R.id.playList)
     RecyclerView playList;
+    @BindView(R.id.stationImage)
+    ImageView stationImage;
     @BindView(R.id.toolbar)
     Toolbar toolbar;
-    @BindView(R.id.stationByRating)
-    RecyclerView stationByRating;
     private MediaBrowserCompat mediaBrowser;
     private MediaControllerCallBack mediaControllerCallBack;
     private ValueAnimator animator;
@@ -73,6 +80,7 @@ public class MainActivity extends AppCompatActivity implements RadioStationRatin
     private PlayListAdapter playListAdapter;
     private RadioStationRatingAdapter ratingAdapter;
     private String currentMediaId = "";
+    private Parcelable stationsByRatingState;
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -87,18 +95,26 @@ public class MainActivity extends AppCompatActivity implements RadioStationRatin
 
     @Override
     public void onStationChanges(String mediaId) {
-        MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().playFromMediaId(mediaId, null);
+        MediaControllerCompat.getMediaController(MainActivity.this)
+                .getTransportControls().playFromMediaId(mediaId, null);
+
+        RadioStationsManager manager = MediaPlayerApplication.getInstance().getManager();
+        String path = manager.getImageUri(mediaId);
+        Picasso.get()
+                .load(path)
+                .placeholder(getDrawable(R.drawable.white))
+                .into(stationImage);
     }
 
     @Override
     public void onChooseTrack(String trackName) {
         try {
             Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
-            intent.putExtra(SearchManager.QUERY,trackName);
+            intent.putExtra(SearchManager.QUERY, trackName);
             startActivity(intent);
         } catch (ActivityNotFoundException e) {
             Toast.makeText(this, "No application can handle this request."
-                    + " Please install a webBrowser",  Toast.LENGTH_LONG).show();
+                    + " Please install a webBrowser", Toast.LENGTH_LONG).show();
             e.printStackTrace();
         }
     }
@@ -106,12 +122,12 @@ public class MainActivity extends AppCompatActivity implements RadioStationRatin
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        getWindow().setStatusBarColor(getResources().getColor(R.color.colorTransparent));
+        setContentView(R.layout.coordinator_layout);
         ButterKnife.bind(this);
         clickHandler = new ClickHandler();
         mediaBrowser = new MediaBrowserCompat(this, new ComponentName(this, MediaPlayerService.class)
                 , new MediaBrowserConnectionCallback(), null);
-
         mediaControllerCallBack = new MediaControllerCallBack();
         initializePlayList();
         initializeRatingList();
@@ -123,6 +139,7 @@ public class MainActivity extends AppCompatActivity implements RadioStationRatin
     protected void onStart() {
         super.onStart();
         mediaBrowser.connect();
+
     }
 
     @Override
@@ -140,26 +157,40 @@ public class MainActivity extends AppCompatActivity implements RadioStationRatin
         mediaBrowser.disconnect();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stationsByRatingState = stationsByRating.getLayoutManager().onSaveInstanceState();
+    }
+
     private void initializeRatingList() {
         final LinearLayoutManager lm = new LinearLayoutManager(this);
         lm.setOrientation(LinearLayoutManager.HORIZONTAL);
 
         ratingAdapter = new RadioStationRatingAdapter(this);
-        stationByRating.setLayoutManager(lm);
-        stationByRating.setAdapter(ratingAdapter);
-        stationByRating.setItemAnimator(new SlideInRightAnimator());
+        stationsByRating.setLayoutManager(lm);
+        stationsByRating.setAdapter(ratingAdapter);
+        stationsByRating.setItemAnimator(new SlideInRightAnimator());
+
+        if (stationsByRatingState != null){
+            stationsByRating.getLayoutManager().onRestoreInstanceState(stationsByRatingState);
+        }
     }
 
     private void initActionBar() {
+
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
         actionBar.setHomeAsUpIndicator(R.drawable.menu);
 
         SharedPreferences sharedPreferences = getSharedPreferences(getString(R.string.app_name), MODE_PRIVATE);
-        String title = sharedPreferences.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, getString(R.string.comedy_radio_name));
-        actionBar.setTitle(title);
+        String title = sharedPreferences.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID
+                , getString(R.string.comedy_radio_name));
+
+        collapsingToolBar.setTitle(title);
     }
+
 
     private void buildTransportControls() {
         PlaybackStateCompat state = MediaControllerCompat.getMediaController(MainActivity.this).getPlaybackState();
@@ -179,21 +210,29 @@ public class MainActivity extends AppCompatActivity implements RadioStationRatin
 
         String stationName = mediaController.getMetadata().getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID);
         Log.d(TAG, "buildTransportControls() mediaId = " + stationName);
-        getSupportActionBar().setTitle(stationName);
+        collapsingToolBar.setTitle(stationName);
+
+        RadioStationsManager manager = MediaPlayerApplication.getInstance().getManager();
+        String path = manager.getImageUri(currentMediaId);
+        Picasso.get()
+                .load(path)
+                .placeholder(getDrawable(R.drawable.white))
+                .into(stationImage);
+//        stationImage.setImageBitmap(RadioLibrary.getBitmapById(stationName));
     }
 
     private void showMetadata(MediaMetadataCompat metadata) {
-        artist.setText(metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST));
-        title.setText(metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE));
+//        artist.setText(metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST));
+//        title.setText(metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE));
     }
 
     private void animateBuffering() {
         if (animator == null) {
             animator = ValueAnimator.ofFloat(1f, 1.2f);
+            animator.setDuration(1000);
+            animator.setRepeatMode(ValueAnimator.REVERSE);
+            animator.setRepeatCount(ValueAnimator.INFINITE);
         }
-        animator.setDuration(1000);
-        animator.setRepeatMode(ValueAnimator.REVERSE);
-        animator.setRepeatCount(ValueAnimator.INFINITE);
         animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
@@ -207,9 +246,10 @@ public class MainActivity extends AppCompatActivity implements RadioStationRatin
     private void stopBufferingAnimation() {
         if (animator != null) {
             animator.cancel();
+            animator.removeAllUpdateListeners();
+            animator = null;
             Log.d(TAG, "animation is canceled");
         }
-
         playStop.setScaleY(1f);
         playStop.setScaleX(1f);
     }
@@ -248,18 +288,18 @@ public class MainActivity extends AppCompatActivity implements RadioStationRatin
 
     private void showInitState() {
         playStop.setBackground(getResources().getDrawable(R.drawable.play));
-        title.setText("");
-        artist.setText("");
+//        title.setText("");
+//        artist.setText("");
     }
 
     private void hideMessageError() {
-        textViewError.setText("");
-        textViewError.setVisibility(View.GONE);
+//        textViewError.setText("");
+//        textViewError.setVisibility(View.GONE);
     }
 
     private void showErrorMessage(CharSequence errorMessage) {
-        textViewError.setText(errorMessage);
-        textViewError.setVisibility(View.VISIBLE);
+//        textViewError.setText(errorMessage);
+//        textViewError.setVisibility(View.VISIBLE);
     }
 
     private void initializePlayList() {
@@ -281,7 +321,7 @@ public class MainActivity extends AppCompatActivity implements RadioStationRatin
 
     private void showRadioStationsSortedByRating(List<MediaBrowserCompat.MediaItem> mediaItems) {
         DiffUtilStations diffUtilStations = new DiffUtilStations(ratingAdapter.getStations()
-                , mediaItems,currentMediaId);
+                , mediaItems, currentMediaId);
         DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(diffUtilStations);
         ratingAdapter.setStations(mediaItems);
         diffResult.dispatchUpdatesTo(ratingAdapter);
@@ -292,7 +332,7 @@ public class MainActivity extends AppCompatActivity implements RadioStationRatin
                 .observe(this, new Observer<List<RadioStation>>() {
                     @Override
                     public void onChanged(@Nullable List<RadioStation> radioStations) {
-                        Log.d(TAG,"radio station from db " + radioStations);
+                        Log.d(TAG, "radio station from db " + radioStations);
                         showRadioStationsSortedByRating(RadioMapper.mapToMediaItem(MainActivity.this, radioStations));
                     }
                 });
@@ -327,7 +367,7 @@ public class MainActivity extends AppCompatActivity implements RadioStationRatin
             Log.d(TAG, "onMetadataChanged");
             showMetadata(metadata);
             currentMediaId = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID);
-            getSupportActionBar().setTitle(currentMediaId);
+            collapsingToolBar.setTitle(currentMediaId);
         }
 
 
@@ -341,7 +381,6 @@ public class MainActivity extends AppCompatActivity implements RadioStationRatin
         public void onQueueChanged(List<MediaSessionCompat.QueueItem> queue) {
             Log.d(TAG, "onQueueChanged " + queue.toString());
             dispatchQueueToAdapter(queue);
-
         }
     }
 

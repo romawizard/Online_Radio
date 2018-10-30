@@ -63,6 +63,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/playListTitle"
-        app:srcCompat="@color/colorButton" />
+        app:srcCompat="@color/colorBlue" />
 
 </android.support.constraint.ConstraintLayout>

@@ -9,6 +9,7 @@ import android.util.Log;
 import java.io.IOException;
 
 import ru.roma.musicplayer.MediaPlayerApplication;
+import ru.roma.musicplayer.data.entity.RadioStation;
 
 public class MediaPlayerImpl extends AbstractPlayer implements MediaPlayer.OnPreparedListener,
         MediaPlayer.OnErrorListener, MediaPlayer.OnBufferingUpdateListener {
@@ -25,11 +26,11 @@ public class MediaPlayerImpl extends AbstractPlayer implements MediaPlayer.OnPre
     }
 
     @Override
-    public void play() {
+    public void play(Context context) {
         if (player == null) {
             player = new MediaPlayer();
-            player.setWakeMode(MediaPlayerApplication.getInstance(), PowerManager.PARTIAL_WAKE_LOCK);
-            lock = ((WifiManager) MediaPlayerApplication.getInstance().getApplicationContext().getSystemService(Context.WIFI_SERVICE))
+            player.setWakeMode(context, PowerManager.PARTIAL_WAKE_LOCK);
+            lock = ((WifiManager) context.getSystemService(Context.WIFI_SERVICE))
                     .createWifiLock(WifiManager.WIFI_MODE_FULL, TAG);
             lock.acquire();
             player.setOnErrorListener(this);
@@ -84,7 +85,7 @@ public class MediaPlayerImpl extends AbstractPlayer implements MediaPlayer.OnPre
     }
 
     @Override
-    public void prepare(String url) {
+    public void prepare(RadioStation radioStation) {
 
     }
 
@@ -96,6 +97,7 @@ public class MediaPlayerImpl extends AbstractPlayer implements MediaPlayer.OnPre
         if (lock != null && lock.isHeld()) {
             lock.release();
         }
+        listener = null;
     }
 
     @Override

@@ -41,7 +41,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/stationIcon"
-        app:srcCompat="@color/colorButton" />
+        app:srcCompat="@color/colorBlue" />
 
     <es.claucookie.miniequalizerlibrary.EqualizerView
         android:id="@+id/equalizer"
@@ -53,7 +53,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        custom:foregroundColor="@color/colorButton"
+        custom:foregroundColor="@color/colorBlue"
         custom:animDuration="4000"
         android:visibility="gone">
 

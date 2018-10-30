@@ -1,10 +1,10 @@
 package ru.roma.musicplayer.service.player;
 
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.RatingCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.text.TextUtils;
 import android.util.Log;
@@ -28,8 +28,8 @@ import java.util.Comparator;
 import java.util.List;
 
 import ru.roma.musicplayer.MediaPlayerApplication;
-import ru.roma.musicplayer.service.library.RadioLibrary;
-import ru.roma.musicplayer.ui.utils.PlayListComparator;
+import ru.roma.musicplayer.data.entity.RadioStation;
+import ru.roma.musicplayer.utils.PlayListComparator;
 import saschpe.exoplayer2.ext.icy.IcyHttpDataSource;
 import saschpe.exoplayer2.ext.icy.IcyHttpDataSourceFactory;
 
@@ -39,32 +39,30 @@ public class ExoPlayerImpl extends AbstractPlayer {
     private static final String NAME = "ru.roma.musicplayer";
     private final String TAG = ExoPlayerImpl.class.getCanonicalName();
     private final List<MediaSessionCompat.QueueItem> playList;
-    private String mediaId;
+    private RadioStation radioStation;
     private SimpleExoPlayer player;
-    private Comparator comparator;
+    private Comparator comparator = new PlayListComparator();
     private ExtractorsFactory extractorsFactory;
     private DefaultDataSourceFactory dataSourceFactory;
     private static int id = 0;
 
-    public ExoPlayerImpl(String media, OnPlayerListener listener) {
+    public ExoPlayerImpl(RadioStation radioStation, OnPlayerListener listener) {
         super(listener);
-        this.mediaId = media;
         playList = new ArrayList<>();
-        comparator = new PlayListComparator();
+        this.radioStation = radioStation;
     }
 
-    private void initPlayer() {
+    private void initPlayer(Context context) {
         DefaultTrackSelector trackSelector = new DefaultTrackSelector();
-        RenderersFactory renderer = new DefaultRenderersFactory(MediaPlayerApplication.getInstance());
+        RenderersFactory renderer = new DefaultRenderersFactory(context);
         extractorsFactory = new DefaultExtractorsFactory();
         IcyListener icyListener = new IcyListener();
         IcyHttpDataSourceFactory icyFactory = new IcyHttpDataSourceFactory.Builder(
-                Util.getUserAgent(MediaPlayerApplication.getInstance(), NAME))
+                Util.getUserAgent(context, NAME))
                 .setIcyHeadersListener(icyListener)
                 .setIcyMetadataChangeListener(icyListener)
                 .build();
-        dataSourceFactory = new DefaultDataSourceFactory(MediaPlayerApplication.getInstance()
-                , null, icyFactory);
+        dataSourceFactory = new DefaultDataSourceFactory(context, null, icyFactory);
 
         player = ExoPlayerFactory.newSimpleInstance(renderer, trackSelector);
         player.addListener(new PlayerEventListener());
@@ -74,14 +72,14 @@ public class ExoPlayerImpl extends AbstractPlayer {
     private ExtractorMediaSource createMediaSource() {
         return new ExtractorMediaSource.Factory(dataSourceFactory).
                 setExtractorsFactory(extractorsFactory)
-                .createMediaSource(Uri.parse(RadioLibrary.getUrlById(mediaId)));
+                .createMediaSource(Uri.parse(radioStation.getStationUrl()));
     }
 
     @Override
-    public void play() {
+    public void play(Context context) {
         Log.d(TAG, "exoPlayer play");
         if (player == null) {
-            initPlayer();
+            initPlayer(context);
         }
         player.setPlayWhenReady(true);
     }
@@ -115,8 +113,8 @@ public class ExoPlayerImpl extends AbstractPlayer {
     }
 
     @Override
-    public void prepare(String mediaId) {
-        this.mediaId = mediaId;
+    public void prepare(RadioStation radioStation) {
+        this.radioStation = radioStation;
         playList.clear();
         listener.OnPlayListChanged(playList);
         listener.onMetadataChanged(createEmptyMetadata());
@@ -127,7 +125,7 @@ public class ExoPlayerImpl extends AbstractPlayer {
 
     private MediaMetadataCompat createEmptyMetadata() {
         return  new MediaMetadataCompat.Builder()
-                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID,mediaId)
+                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID,radioStation.getMediaId())
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "")
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "")
                 .build();
@@ -138,15 +136,12 @@ public class ExoPlayerImpl extends AbstractPlayer {
         if (player != null) {
             player.release();
         }
+        listener = null;
     }
 
     @Override
     public boolean isPlaying() {
-        if (player != null) {
-            return player.getPlayWhenReady();
-        } else {
-            return false;
-        }
+        return player != null && player.getPlayWhenReady();
     }
 
     private class PlayerEventListener extends Player.DefaultEventListener {
@@ -172,6 +167,7 @@ public class ExoPlayerImpl extends AbstractPlayer {
 
         @Override
         public void onPlayerError(ExoPlaybackException error) {
+            Log.d(TAG,"onPlayerError");
             if (player != null) {
                 player.release();
                 player = null;
@@ -205,29 +201,18 @@ public class ExoPlayerImpl extends AbstractPlayer {
 
         @Override
         public void onIcyMetaData(IcyHttpDataSource.IcyMetadata icyMetadata) {
-            Log.d(TAG, "onIcyMetaDat " + icyMetadata.toString());
+            Log.d(TAG, "onIcyMetaData " + icyMetadata.toString());
             String info = icyMetadata.getStreamTitle().trim();
             String[] data = info.split(" - ");
             String title = data[1];
             String artist = data[0].replace("-", "");
 
-            if (TextUtils.equals(artist, "VIP")) {
-                return;
-            }
-
-            if (playList.size()>=1){
-                String lastTitle =  playList.get(0).getDescription().getTitle().toString();
-                String lastArtist =  playList.get(0).getDescription().getSubtitle().toString();
-                if (TextUtils.equals(lastArtist,artist) && TextUtils.equals(lastTitle,title)){
-                    Log.d(TAG,"equals content");
-                    return;
-                }
-            }
 
             Bundle bundle = new Bundle();
             bundle.putLong(TIME, System.currentTimeMillis());
             MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
-                    .setMediaId(mediaId)
+                    .setMediaId(radioStation.getMediaId())
+                    .setIconUri(Uri.parse(radioStation.getImageUri()))
                     .setTitle(title)
                     .setSubtitle(artist)
                     .setExtras(bundle)
@@ -238,13 +223,15 @@ public class ExoPlayerImpl extends AbstractPlayer {
             Collections.sort(playList, comparator);
 
             MediaMetadataCompat metadata = new MediaMetadataCompat.Builder()
-                    .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID,mediaId)
+                    .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID,radioStation.getMediaId())
                     .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
                     .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
+                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI,radioStation.getImageUri())
                     .build();
 
             listener.onMetadataChanged(metadata);
             listener.OnPlayListChanged(playList);
+            Log.d(TAG,"send playList to listener");
         }
     }
 }

@@ -1,9 +1,12 @@
 package ru.roma.musicplayer.service.player;
 
+import android.content.Context;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
 import java.util.List;
+
+import ru.roma.musicplayer.data.entity.RadioStation;
 
 public abstract class AbstractPlayer {
 
@@ -19,7 +22,7 @@ public abstract class AbstractPlayer {
                         PlaybackStateCompat.ACTION_STOP);
     }
 
-    public abstract void play();
+    public abstract void play(Context context);
 
     public abstract void stop();
 
@@ -29,7 +32,7 @@ public abstract class AbstractPlayer {
 
     public abstract void skipPrevious();
 
-    public abstract void prepare(String url);
+    public abstract void prepare(RadioStation radioStation);
 
     public abstract void release();
 

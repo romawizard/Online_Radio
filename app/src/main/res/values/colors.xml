@@ -4,9 +4,12 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
     <color name="black">#000000</color>
-    <color name="colorButton">#3f8dda</color>
+    <color name="colorBlue">#3f8dda</color>
+    <color name="colorDarkBlue">#2f75b9</color>
     <color name="colorGray">#84808080</color>
     <color name="colorGrayTransparent">#84e9e9ea</color>
+     <color name="colorTransparent">#38686869</color>
+    <color name="transparent">#00000000</color>
     <color name="colorRed">#ff0000</color>
 
 </resources>

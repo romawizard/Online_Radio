@@ -26,6 +26,14 @@
     <string name="fm181_oldSchool">http://listen.181fm.com/181-oldschool_128k.mp3</string>
     <string name="fm181_hardrock">http://listen.181fm.com/181-hardrock_128k.mp3</string>
     <string name="fm181_rock">http://listen.181fm.com/181-rock_128k.mp3</string>
+    <string name="radio_maximum">http://icecast.radiomaximum.cdnvideo.ru/st35.mp3</string>
+    <string name="europa_plus"> http://ep128.hostingradio.ru:8030/ep128</string>
+    <string name="jam_fm">http://cast.radiogroup.com.ua:8000/jamfm</string>
+    <string name="perets_fm">http://radio.urg.com.ua:80/radio-stilnoe</string>
+    <string name="radio_mfm">http://radio.mfm.ua:80/online128</string>
+    <string name="lux_fm">http://icecastdc.luxnet.ua/lux_128</string>
+    <string name="nashe_radio">http://cast.radiogroup.com.ua:8000/nashe</string>
+    <string name="radio_power">http://media2.brg.ua:8000/power_h</string>
 
     <string name="comedy_radio_name">Comedy Radio</string>
     <string name="record_name">Record</string>
@@ -44,6 +52,14 @@
     <string name="fm181_oldSchool_name">181 Fm OldSchool</string>
     <string name="fm181_hardrock_name">181 Fm Hard Rock</string>
     <string name="fm181_rock_name">181 Fm Rock</string>
+    <string name="radio_maximum_name">Maximum</string>
+    <string name="europa_plus_name">Europa +</string>
+    <string name="jam_fm_name">Jam Fm</string>
+    <string name="perets_fm_name">Перец</string>
+    <string name="radio_mfm_name">Mfm</string>
+    <string name="lux_fm_name">Люкс Фм</string>
+    <string name="nashe_radio_name">Наше Радио</string>
+    <string name="radio_power_name">Power</string>
 
 
     <string-array name="stations_url">
@@ -64,6 +80,14 @@
         <item>@string/fm181_rock</item>
         <item>@string/fm181_hip_hop</item>
         <item>@string/fm181_oldSchool</item>
+        <item>@string/radio_maximum</item>
+        <item>@string/europa_plus</item>
+        <item>@string/jam_fm</item>
+        <item>@string/perets_fm</item>
+        <item>@string/radio_mfm</item>
+        <item>@string/lux_fm</item>
+        <item>@string/nashe_radio</item>
+        <item>@string/radio_power</item>
     </string-array>
 
     <string-array name="stations_name">
@@ -84,6 +108,42 @@
         <item>@string/fm181_rock_name</item>
         <item>@string/fm181_hip_hop_name</item>
         <item>@string/fm181_oldSchool_name</item>
+        <item>@string/radio_maximum_name</item>
+        <item>@string/europa_plus_name</item>
+        <item>@string/jam_fm_name</item>
+        <item>@string/perets_fm_name</item>
+        <item>@string/radio_mfm_name</item>
+        <item>@string/lux_fm_name</item>
+        <item>@string/nashe_radio_name</item>
+        <item>@string/radio_power_name</item>
+    </string-array>
+
+    <string-array name="image_path">
+        <item>file:///android_asset/image/radio_comedy.png</item>
+        <item>file:///android_asset/image/radio_record.png</item>
+        <item>file:///android_asset/image/radio_record.png</item>
+        <item>file:///android_asset/image/radio_record.png</item>
+        <item>file:///android_asset/image/radio_record.png</item>
+        <item>file:///android_asset/image/radio_pirate_st.jpg</item>
+        <item>file:///android_asset/image/trancemisssion.jpg</item>
+        <item>file:///android_asset/image/radio_kiss_fm.png</item>
+        <item>file:///android_asset/image/radio_kiss_fm.png</item>
+        <item>file:///android_asset/image/radio_kiss_fm.png</item>
+        <item>file:///android_asset/image/radio_hit_fm.png</item>
+        <item>file:///android_asset/image/radio_rocks.jpg</item>
+        <item>file:///android_asset/image/auto_radio.png</item>
+        <item>file:///android_asset/image/radio_one_eight_one_fm.jpg</item>
+        <item>file:///android_asset/image/radio_one_eight_one_fm.jpg</item>
+        <item>file:///android_asset/image/radio_one_eight_one_fm.jpg</item>
+        <item>file:///android_asset/image/radio_one_eight_one_fm.jpg</item>
+        <item>file:///android_asset/image/radio_maximum.jpg</item>
+        <item>file:///android_asset/image/europa_plus.png</item>
+        <item>file:///android_asset/image/radio_jam_fm.jpg</item>
+        <item>file:///android_asset/image/perets_fm.jpg</item>
+        <item>file:///android_asset/image/radio_mfm.png</item>
+        <item>file:///android_asset/image/radio_lux_fm.jpg</item>
+        <item>file:///android_asset/image/nashe_radio.jpg</item>
+        <item>file:///android_asset/image/radio_power.jpg</item>
     </string-array>
 
 </resources>

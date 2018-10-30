@@ -1,4 +1,4 @@
-package ru.roma.musicplayer.ui.utils;
+package ru.roma.musicplayer.utils;
 
 import android.support.v4.media.session.MediaSessionCompat;
 

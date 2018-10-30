@@ -35,4 +35,10 @@ public interface RadioStationDao {
 
     @Update
     void updateStation(RadioStation radioStation);
+
+    @Query("SELECT imageUri FROM radiostation WHERE mediaId =:mediaId")
+    String getStationImageUri(String mediaId);
+
+    @Query("SELECT stationUrl FROM radiostation WHERE mediaId =:mediaId")
+    String getStationUrl(String mediaId);
 }

@@ -1,6 +1,5 @@
 package ru.roma.musicplayer.service;
 
-import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -9,6 +8,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -23,6 +24,9 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
 import android.util.Log;
+
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
 import java.util.List;
 
@@ -49,7 +53,7 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
     private IntentFilter intentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
     private BecomingNoisyReceiver noisyReceiver = new BecomingNoisyReceiver();
     private MediaNotificationManager notificationManager;
-    private String currentMediaId;
+    private RadioStation currentRadioStation;
     private boolean isStarted = false;
     private boolean isReceiverRegistered = false;
     private Handler handler = new Handler();
@@ -87,10 +91,17 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
         if (isReceiverRegistered) {
             unregisterReceiver(noisyReceiver);
         }
-        player.release();
-        mediaSession.release();
-        notificationManager.destroy();
-        handler.removeCallbacks(increaseTask);
+        try {
+            player.release();
+            mediaSession.release();
+            notificationManager.release();
+            handler.removeCallbacks(increaseTask);
+            handler = null;
+            AudioManager audioManager = (AudioManager) MediaPlayerService.this.getSystemService(Context.AUDIO_SERVICE);
+            audioManager.abandonAudioFocus(afChangeListener);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -104,7 +115,7 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
         }
         return super.toString() + '\'' +
                 "MediaPlayerService{" +
-                "id='" + currentMediaId + '\'' +
+                "id='" + currentRadioStation + '\'' +
                 ", isStarted=" + isStarted +
                 ", isReceiverRegistered=" + isReceiverRegistered +
                 ", mediaSession isAlive= " + isAlive +
@@ -119,8 +130,9 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
 
     private void initPlayer() {
         SharedPreferences preferences = getSharedPreferences(getString(R.string.app_name), MODE_PRIVATE);
-        currentMediaId = preferences.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, getString(R.string.comedy_radio_name));
-        player = new ExoPlayerImpl(currentMediaId, new PlayerListener());
+        String mediaId = preferences.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, getString(R.string.comedy_radio_name));
+        currentRadioStation = radioStationsManager.getRadioStationByMediaId(mediaId);
+        player = new ExoPlayerImpl(currentRadioStation, new PlayerListener());
     }
 
     private void initMediaSession() {
@@ -143,7 +155,7 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
         setSessionToken(mediaSession.getSessionToken());
 
         MediaMetadataCompat metadata = new MediaMetadataCompat.Builder()
-                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, currentMediaId)
+                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, currentRadioStation.getMediaId())
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "")
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "")
                 .build();
@@ -169,8 +181,8 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
     private void saveToSharedPreferences() {
         SharedPreferences preferences = getSharedPreferences(getString(R.string.app_name), MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
-        if (!TextUtils.isEmpty(currentMediaId)) {
-            editor.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, currentMediaId);
+        if (currentRadioStation != null) {
+            editor.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, currentRadioStation.getMediaId());
         }
         editor.apply();
     }
@@ -193,7 +205,7 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
         increaseTask = new Runnable() {
             @Override
             public void run() {
-                radioStationsManager.increaseRatingByTime(currentMediaId);
+               radioStationsManager.increaseRating(currentRadioStation);
             }
         };
         handler.postDelayed(increaseTask, MIN_TIME_TO_INCREASE);
@@ -204,7 +216,7 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
         long diff = currentTime - startTime;
         if (startTime != 0L && diff >= MIN_TIME_TO_INCREASE) {
             Log.d(TAG, "increaseRatingByPlayingTime diff = " + diff);
-            radioStationsManager.increaseRatingByTime(currentMediaId, diff);
+            radioStationsManager.increaseRatingByTime(currentRadioStation, diff);
         }
     }
 
@@ -212,13 +224,13 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
 
         @Override
         public void onPlayFromMediaId(String mediaId, Bundle extras) {
-            if (TextUtils.equals(currentMediaId, mediaId) && player.isPlaying()) {
+            if (TextUtils.equals(currentRadioStation.getMediaId(), mediaId) && player.isPlaying()) {
                 return;
             }
             increaseRatingByPlayingTime();
-            currentMediaId = mediaId;
+            currentRadioStation = radioStationsManager.getRadioStationByMediaId(mediaId);
             saveToSharedPreferences();
-            player.prepare(mediaId);
+            player.prepare(currentRadioStation);
             onPlay();
         }
 
@@ -229,7 +241,7 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
             if (!isStarted) {
                 startMediaPlayerService();
             }
-            startForeground(MediaNotificationProvider.NOTIFICATION_ID, notificationManager.provider.getBufferingNotification());
+           notificationManager.showNotification();
             if (!isReceiverRegistered) {
                 registerReceiver(noisyReceiver, intentFilter);
                 isReceiverRegistered = true;
@@ -238,7 +250,7 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
             int result = audioManager.requestAudioFocus(afChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
 
             if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                player.play();
+                player.play(getApplicationContext());
                 startCountdownToIncreaseRating();
                 startTime = System.currentTimeMillis();
             }
@@ -284,30 +296,21 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
 
         @Override
         public void onStateChanged(PlaybackStateCompat state) {
+            Log.d(TAG, "onStateChanged");
             mediaSession.setPlaybackState(state);
-            switch (state.getState()) {
-                case PlaybackStateCompat.STATE_PLAYING:
-                case PlaybackStateCompat.STATE_PAUSED:
-                    notificationManager.showNotification(state);
-                    break;
-                case PlaybackStateCompat.STATE_STOPPED: {
-                    stopForeground(true);
-                    break;
-                }
-                case PlaybackStateCompat.STATE_ERROR:
-                    notificationManager.showNotification(state);
-                    break;
-            }
+            notificationManager.showNotification();
         }
 
         @Override
         public void onMetadataChanged(MediaMetadataCompat metadata) {
+            Log.d(TAG, "onMetadataChanged");
             mediaSession.setMetadata(metadata);
-            notificationManager.showNotification(mediaSession.getController().getPlaybackState());
+            notificationManager.showNotification();
         }
 
         @Override
         public void OnPlayListChanged(List playList) {
+            Log.d(TAG, "OnPlayListChanged");
             mediaSession.setQueue(playList);
         }
     }
@@ -321,13 +324,18 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
         public void onAudioFocusChange(int focusChange) {
             switch (focusChange) {
                 case AudioManager.AUDIOFOCUS_LOSS:
+                    Log.d(TAG,"audioFocus Los");
                     mediaSession.getController().getTransportControls().stop();
                     break;
                 case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                    Log.d(TAG,"audioFocus Los transient");
+
                     isPlayingBeforeLossAudioFocus = player.isPlaying();
                     mediaSession.getController().getTransportControls().pause();
                     break;
                 case AudioManager.AUDIOFOCUS_REQUEST_GRANTED:
+                    Log.d(TAG,"audioFocus request granted");
+
                     if (isPlayingBeforeLossAudioFocus) {
                         mediaSession.getController().getTransportControls().play();
                     }
@@ -337,7 +345,7 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
     }
 
 
-    private class MediaNotificationManager {
+    private class MediaNotificationManager  {
 
         private MediaNotificationProvider provider;
 
@@ -346,37 +354,74 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
             provider = new MediaNotificationProvider(getApplicationContext(), token);
         }
 
-        public void showNotification(PlaybackStateCompat state) {
-            if (state.getState() == PlaybackStateCompat.STATE_NONE || state.getState() == PlaybackStateCompat.STATE_STOPPED) {
-                startForeground(MediaNotificationProvider.NOTIFICATION_ID, provider.getEmptyNotification());
-                return;
-            }
-            if (state.getState() == PlaybackStateCompat.STATE_ERROR) {
-                NotificationManager manager = (NotificationManager) MediaPlayerService.this
-                        .getSystemService(Context.NOTIFICATION_SERVICE);
-                manager.notify(MediaNotificationProvider.NOTIFICATION_ID, provider.getErrorNotification());
-                stopForeground(false);
-                return;
-            }
+        public void showNotification() {
+            Log.d(TAG,"showNotification " +Thread.currentThread());
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Picasso.get().load(currentRadioStation.getImageUri())
+                            .resize(200,0)
+                            .into(new Target() {
+                                @Override
+                                public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                                    Log.d(TAG,"onBitmapLoaded " + Thread.currentThread());
+                                    prepareNotification(mediaSession.getController().getPlaybackState(),bitmap);
+                                }
+
+                                @Override
+                                public void onBitmapFailed(Exception e, Drawable errorDrawable) {
+                                    Log.d(TAG,"onBitmapFailed");
+                                }
+
+                                @Override
+                                public void onPrepareLoad(Drawable placeHolderDrawable) {
+                                    Log.d(TAG,"onPrepareLoad");
+                                }
+                            });
+                }
+            });
+
+//            prepareNotification(state,null);
+        }
+
+        private void prepareNotification(final PlaybackStateCompat state, Bitmap image){
+
+            NotificationManager manager = (NotificationManager) MediaPlayerService.this
+                    .getSystemService(Context.NOTIFICATION_SERVICE);
 
             MediaMetadataCompat metadata = mediaSession.getController().getMetadata();
-            Notification notification = provider.getNotification(state, metadata);
 
-            if (state.getState() == PlaybackStateCompat.STATE_PLAYING) {
-                startForeground(MediaNotificationProvider.NOTIFICATION_ID, notification);
+            switch (state.getState()){
+                case PlaybackStateCompat.STATE_BUFFERING:
+                    startForeground(MediaNotificationProvider.NOTIFICATION_ID, provider.getBufferingNotification());
+                    break;
+                case PlaybackStateCompat.STATE_NONE:
 
-            } else {
-                NotificationManager manager = (NotificationManager) MediaPlayerService.this
-                        .getSystemService(Context.NOTIFICATION_SERVICE);
-                manager.notify(MediaNotificationProvider.NOTIFICATION_ID, notification);
+                    startForeground(MediaNotificationProvider.NOTIFICATION_ID, provider.getEmptyNotification() );
+                    break;
+                case PlaybackStateCompat.STATE_ERROR:
+                    manager.notify(MediaNotificationProvider.NOTIFICATION_ID,provider.getErrorNotification());
+                    stopForeground(false);
+                    break;
+                case PlaybackStateCompat.STATE_PLAYING:
+                    startForeground(MediaNotificationProvider.NOTIFICATION_ID,provider.getNotification(state, metadata,image));
+                    break;
+                case PlaybackStateCompat.STATE_PAUSED:
+                    manager.notify(MediaNotificationProvider.NOTIFICATION_ID,provider.getNotification(state,metadata,image));
+                    stopForeground(false);
+                    break;
+                case PlaybackStateCompat.STATE_STOPPED:
+                    stopForeground(true);
+                    break;
+                    default:
+                        break;
             }
         }
 
-        void destroy() {
-            provider.destroy();
+        void release() {
+            provider.release();
         }
     }
-
 
     private class BecomingNoisyReceiver extends BroadcastReceiver {
 
