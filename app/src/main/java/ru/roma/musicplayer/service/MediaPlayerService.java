@@ -423,6 +423,7 @@ public class MediaPlayerService extends MediaBrowserServiceCompat {
         }
     }
 
+
     private class BecomingNoisyReceiver extends BroadcastReceiver {
 
         @Override

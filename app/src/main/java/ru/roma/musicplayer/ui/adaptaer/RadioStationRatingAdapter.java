@@ -31,7 +31,7 @@ public class RadioStationRatingAdapter extends RecyclerView.Adapter<RadioStation
     @Override
     public RatingHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = (LayoutInflater) parent.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View view = inflater.inflate(R.layout.item_rating_station,parent,false);
+        View view = inflater.inflate(R.layout.rating_station_item,parent,false);
         return new RatingHolder(view);
     }
 

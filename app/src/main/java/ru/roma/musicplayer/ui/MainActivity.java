@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
@@ -28,7 +27,6 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -55,8 +53,7 @@ public class MainActivity extends AppCompatActivity implements RadioStationRatin
 
     private static final String TAG = MainActivity.class.getCanonicalName();
     @BindView(R.id.play_stop)
-    AppCompatButton playStop;
-    //    @BindView(R.id.textViewError)
+    AppCompatButton playStop;//    @BindView(R.id.textViewError)
 //    TextView textViewError;
 //    @BindView(R.id.artist)
 //    TextView artist;
@@ -80,7 +77,6 @@ public class MainActivity extends AppCompatActivity implements RadioStationRatin
     private PlayListAdapter playListAdapter;
     private RadioStationRatingAdapter ratingAdapter;
     private String currentMediaId = "";
-    private Parcelable stationsByRatingState;
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -160,7 +156,6 @@ public class MainActivity extends AppCompatActivity implements RadioStationRatin
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        stationsByRatingState = stationsByRating.getLayoutManager().onSaveInstanceState();
     }
 
     private void initializeRatingList() {
@@ -172,9 +167,6 @@ public class MainActivity extends AppCompatActivity implements RadioStationRatin
         stationsByRating.setAdapter(ratingAdapter);
         stationsByRating.setItemAnimator(new SlideInRightAnimator());
 
-        if (stationsByRatingState != null){
-            stationsByRating.getLayoutManager().onRestoreInstanceState(stationsByRatingState);
-        }
     }
 
     private void initActionBar() {
@@ -399,7 +391,6 @@ public class MainActivity extends AppCompatActivity implements RadioStationRatin
                         MediaControllerCompat.getMediaController(MainActivity.this).getTransportControls().play();
                     }
                     break;
-
             }
         }
     }

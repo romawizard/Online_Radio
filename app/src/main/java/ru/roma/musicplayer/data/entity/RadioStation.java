@@ -86,7 +86,7 @@ public class RadioStation {
     }
 
     public void increaseRating(long diff) {
-        float inc = diff/1000000f;
+        float inc = diff/10000000f;
         Log.d(TAG,"inc = " + inc);
         rating += inc;
     }

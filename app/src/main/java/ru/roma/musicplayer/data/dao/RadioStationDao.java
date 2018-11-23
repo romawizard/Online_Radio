@@ -41,4 +41,7 @@ public interface RadioStationDao {
 
     @Query("SELECT stationUrl FROM radiostation WHERE mediaId =:mediaId")
     String getStationUrl(String mediaId);
+
+    @Query("SELECT * FROM radiostation WHERE mediaId LIKE '%' || :query || '%'")
+    LiveData<List<RadioStation>> getRadioStationByQuery(String query);
 }

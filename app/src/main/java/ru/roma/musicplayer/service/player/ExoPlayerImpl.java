@@ -207,6 +207,18 @@ public class ExoPlayerImpl extends AbstractPlayer {
             String title = data[1];
             String artist = data[0].replace("-", "");
 
+            if (TextUtils.equals(artist, "VIP") || TextUtils.equals(artist,"181.fm")) {
+                return;
+            }
+
+            if (playList.size()>=1){
+                String lastTitle =  playList.get(0).getDescription().getTitle().toString();
+                String lastArtist =  playList.get(0).getDescription().getSubtitle().toString();
+                if (TextUtils.equals(lastArtist,artist) && TextUtils.equals(lastTitle,title)){
+                    Log.d(TAG,"equals content");
+                    return;
+                }
+            }
 
             Bundle bundle = new Bundle();
             bundle.putLong(TIME, System.currentTimeMillis());

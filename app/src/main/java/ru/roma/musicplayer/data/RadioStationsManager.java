@@ -4,6 +4,7 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.net.Uri;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +44,7 @@ public class RadioStationsManager {
     }
 
     public List<RadioStation> getRadioStations() {
-        return (List<RadioStation>) radioStations.values();
+        return new ArrayList<>(radioStations.values()) ;
     }
 
     public String getImageUri(String mediaId) {
@@ -78,5 +79,9 @@ public class RadioStationsManager {
 
     public void notifyDataChange() {
         loadData();
+    }
+
+    public LiveData<List<RadioStation>> searchStation(String query) {
+        return radioStationDao.getRadioStationByQuery(query);
     }
 }

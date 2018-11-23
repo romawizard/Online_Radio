@@ -23,7 +23,8 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".service.MediaPlayerService"
+        <service
+            android:name=".service.MediaPlayerService"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
@@ -37,12 +38,25 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".ui.ListOfRadioStationActivity"
-            android:parentActivityName=".ui.MainActivity">
+        <activity
+            android:name=".ui.ListOfRadioStationActivity"
+            android:parentActivityName=".ui.MainActivity"
+            android:launchMode="singleTop">
+
+            <meta-data android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
+
+
         </activity>
+
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="c5a7e1889af99a00f44c8e8d794fd8986cfaf356" />
-    </application>
+
+     </application>
 
 </manifest>

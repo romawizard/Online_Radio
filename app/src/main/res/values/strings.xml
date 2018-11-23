@@ -48,18 +48,20 @@
     <string name="hit_ua_name">Hit Fm</string>
     <string name="radio_rocks_name">Rocks</string>
     <string name="auto_radio_name">Auto Radio</string>
-    <string name="fm181_hip_hop_name">181 Fm Hip-Hop</string>
-    <string name="fm181_oldSchool_name">181 Fm OldSchool</string>
-    <string name="fm181_hardrock_name">181 Fm Hard Rock</string>
-    <string name="fm181_rock_name">181 Fm Rock</string>
+    <string name="fm181_hip_hop_name">181.Fm Hip-Hop</string>
+    <string name="fm181_oldSchool_name">181.Fm OldSchool</string>
+    <string name="fm181_hardrock_name">181.Fm Hard Rock</string>
+    <string name="fm181_rock_name">181.Fm Rock</string>
     <string name="radio_maximum_name">Maximum</string>
-    <string name="europa_plus_name">Europa +</string>
+    <string name="europa_plus_name">Europa Plus</string>
     <string name="jam_fm_name">Jam Fm</string>
     <string name="perets_fm_name">Перец</string>
     <string name="radio_mfm_name">Mfm</string>
     <string name="lux_fm_name">Люкс Фм</string>
     <string name="nashe_radio_name">Наше Радио</string>
     <string name="radio_power_name">Power</string>
+    <string name="search_title">Search</string>
+    <string name="search_hint">Search Radio Station</string>
 
 
     <string-array name="stations_url">
@@ -119,7 +121,7 @@
     </string-array>
 
     <string-array name="image_path">
-        <item>file:///android_asset/image/radio_comedy.png</item>
+        <item>file:///android_asset/image/radio_comedy.jpg</item>
         <item>file:///android_asset/image/radio_record.png</item>
         <item>file:///android_asset/image/radio_record.png</item>
         <item>file:///android_asset/image/radio_record.png</item>

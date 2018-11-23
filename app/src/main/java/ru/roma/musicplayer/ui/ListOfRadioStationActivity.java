@@ -1,7 +1,9 @@
 package ru.roma.musicplayer.ui;
 
+import android.app.SearchManager;
 import android.arch.lifecycle.Observer;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.RemoteException;
@@ -20,15 +22,21 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.SearchView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
+import java.util.HashMap;
 import java.util.List;
 
 import butterknife.BindView;
@@ -66,6 +74,7 @@ public class ListOfRadioStationActivity extends AppCompatActivity implements Rad
     private ControllerCallback controllerCallback;
     private RadioStationsManager manager;
     private ActionBar actionBar;
+    private SearchView searchView;
 
     @Override
     public void onRadioStationChanges(String mediaId, Bundle bundle) {
@@ -88,10 +97,62 @@ public class ListOfRadioStationActivity extends AppCompatActivity implements Rad
     }
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        Log.d(TAG,"onNewIntent");
+        handleIntent(intent);
+    }
+
+    private void handleIntent(Intent intent) {
+        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            String query = intent.getStringExtra(SearchManager.QUERY);
+            Log.d(TAG,"search query = " + query);
+            searchRadioStationsByQuery(query);
+        }
+    }
+
+    private void searchRadioStationsByQuery(String query) {
+        manager.searchStation(query).observe(this, new Observer<List<RadioStation>>() {
+            @Override
+            public void onChanged(@Nullable List<RadioStation> radioStations) {
+                showListOfRadioStation(RadioMapper.mapToMediaItem(ListOfRadioStationActivity.this,radioStations));
+            }
+        });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.optinal_menu,menu);
+
+        SearchManager manager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        searchView = (SearchView) menu.findItem(R.id.search).getActionView();
+        searchView.setSearchableInfo(manager.getSearchableInfo(getComponentName()));
+        searchView.setIconified(false);
+        searchView.setQueryRefinementEnabled(true);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                searchRadioStationsByQuery(newText);
+                return true;
+            }
+        });
+        return true;
+    }
+
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list_of_radio_station);
         ButterKnife.bind(this);
+
 
         manager = MediaPlayerApplication.getInstance().getManager();
 
@@ -109,6 +170,7 @@ public class ListOfRadioStationActivity extends AppCompatActivity implements Rad
                 startActivity(intent);
             }
         });
+        handleIntent(getIntent());
     }
 
     @Override
@@ -124,6 +186,12 @@ public class ListOfRadioStationActivity extends AppCompatActivity implements Rad
             MediaControllerCompat.getMediaController(ListOfRadioStationActivity.this).unregisterCallback(controllerCallback);
         }
         mediaBrowser.disconnect();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        searchView.setOnQueryTextListener(null);
     }
 
     private void showListOfRadioStation(List<MediaBrowserCompat.MediaItem> mediaItems) {
@@ -148,7 +216,6 @@ public class ListOfRadioStationActivity extends AppCompatActivity implements Rad
         listStations.setLayoutManager(lm);
         listStations.setAdapter(adapter);
         listStations.setItemAnimator(new SlideInRightAnimator());
-
     }
 
     private void initActionBar() {
@@ -159,6 +226,17 @@ public class ListOfRadioStationActivity extends AppCompatActivity implements Rad
     }
 
     private void subscribeToLiveData() {
+
+//        String root = mediaBrowser.getRoot();
+//        mediaBrowser.subscribe(root, new MediaBrowserCompat.SubscriptionCallback() {
+//            @Override
+//            public void onChildrenLoaded(@NonNull String parentId, @NonNull List<MediaBrowserCompat.MediaItem> children) {
+//                super.onChildrenLoaded(parentId, children);
+//                showListOfRadioStation(children);
+//            }
+//        });
+
+
         MediaPlayerApplication.getInstance().getManager().getLiveData()
                 .observe(ListOfRadioStationActivity.this, new Observer<List<RadioStation>>() {
                     @Override
@@ -239,7 +317,6 @@ public class ListOfRadioStationActivity extends AppCompatActivity implements Rad
                     showPlayingLayout();
                     playPausePlayingLayout.setBackground(getDrawable(R.drawable.pause));
                     adapter.startAnimation();
-
             }
         }
 

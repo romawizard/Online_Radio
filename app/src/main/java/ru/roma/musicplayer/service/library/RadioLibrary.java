@@ -35,7 +35,6 @@ public class RadioLibrary {
                     .setMediaId(names[i])
                     .setTitle(names[i])
                     .setMediaUri(Uri.parse(URLs[i]))
-//                    .setIconBitmap(BitmapFactory.decodeResource(MediaPlayerApplication.getInstance().getResources(),ids[i]))
                     .build();
             radioStations.add(new MediaBrowserCompat.MediaItem(description, MediaBrowser.MediaItem.FLAG_PLAYABLE));
         }
